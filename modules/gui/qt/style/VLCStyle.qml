@@ -326,6 +326,28 @@ QtObject {
     // Player control layout
     readonly property int controlLayoutHeight: MainCtx.dp(64, scale)
     readonly property int controlLayoutHeightPinned: MainCtx.dp(32, scale)
+    readonly property int controlLayoutHeightInline: MainCtx.dp(32, scale)
+    readonly property int controlBarInlinePadding: MainCtx.dp(11, scale)
+    readonly property int controlBarInlineSpacing: MainCtx.dp(20, scale)
+    // below this width the inline control bar falls back to a separate seek row
+    readonly property int controlBarInlineMinimumWidth: MainCtx.dp(640, scale)
+
+    // Seek bar (inline control bar)
+    readonly property int seekBar_height: MainCtx.dp(28, scale)
+    readonly property int seekBar_radius: MainCtx.dp(6, scale)
+    readonly property int seekBar_inset: MainCtx.dp(2, scale)
+    readonly property int seekBar_handleWidth: MainCtx.dp(8, scale)
+    readonly property int seekBar_handleRadius: MainCtx.dp(4, scale)
+    readonly property int seekBar_timeWidth: MainCtx.dp(76, scale)
+
+    // Play button (pill)
+    readonly property int playButton_width: MainCtx.dp(54, scale)
+    readonly property int playButton_height: MainCtx.dp(28, scale)
+    readonly property int playButton_radius: MainCtx.dp(6, scale)
+
+    // Volume wedge
+    readonly property int volumeWedge_width: MainCtx.dp(88, scale)
+    readonly property int volumeWedge_height: MainCtx.dp(28, scale)
 
     // Scroll bar (size means width or height, depending on the orientation):
     readonly property real scrollBarInteractingSize: MainCtx.dp(8, scale)
