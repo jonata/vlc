@@ -32,6 +32,27 @@ import VLC.Dialogs
 RowLayout {
     id: root
 
+    enum Section {
+        All,
+        Subtitle,
+        Audio // audio tracks and audio output devices
+    }
+
+    property int section: TracksListPage.Section.All
+
+    readonly property int _columnCount: {
+        switch (section) {
+        case TracksListPage.Section.Subtitle: return 1
+        case TracksListPage.Section.Audio: return 2
+        default: return 3
+        }
+    }
+
+    // a single section does not need the whole player width
+    readonly property var preferredWidth: (section === TracksListPage.Section.All)
+                                          ? undefined
+                                          : VLCStyle.dp(320, VLCStyle.scale) * _columnCount
+
     readonly property ColorContext colorContext: ColorContext {
         id: theme
 
@@ -49,6 +70,8 @@ RowLayout {
 
     Widgets.ButtonExt {
         id: playbackBtn
+
+        visible: root.section === TracksListPage.Section.All
 
         text: qsTr("%1x").arg(+Player.rate.toFixed(2))
 
@@ -73,9 +96,11 @@ RowLayout {
         Layout.fillHeight: true
         Layout.fillWidth: true
 
-        Navigation.leftItem: playbackBtn
+        Navigation.leftItem: playbackBtn.visible ? playbackBtn : null
 
         TrackColumn {
+            visible: root.section !== TracksListPage.Section.Audio
+
             title: qsTr("Subtitle")
             tracksModel: Player.subtitleTracks
             menuIcon: VLCIcons.expand
@@ -86,6 +111,8 @@ RowLayout {
         }
 
         TrackColumn {
+            visible: root.section !== TracksListPage.Section.Subtitle
+
             title: qsTr("Audio")
             tracksModel: Player.audioTracks
             menuIcon: VLCIcons.expand
@@ -96,6 +123,8 @@ RowLayout {
         }
 
         TrackColumn {
+            visible: root.section === TracksListPage.Section.All
+
             title: qsTr("Video Tracks")
             tracksModel: Player.videoTracks
             menuIcon: VLCIcons.add
@@ -103,6 +132,16 @@ RowLayout {
             onMenuAction: (menuPos) => {
                 DialogsProvider.loadVideoFile()
             }
+        }
+
+        TrackColumn {
+            visible: root.section === TracksListPage.Section.Audio
+
+            title: qsTr("Output device")
+            tracksModel: Player.audioDevices
+            showMenu: false
+            menuIcon: VLCIcons.more
+            menuText: ""
         }
     }
 
@@ -121,12 +160,13 @@ RowLayout {
         required property var tracksModel
         required property string menuIcon
         required property string menuText
+        property bool showMenu: true
 
         signal menuAction(point position)
 
         focus: true
 
-        width: row.width / 3
+        width: row.width / root._columnCount
         height: row.height
 
         onActiveFocusChanged: if (activeFocus) tracksList.forceActiveFocus(focusReason)
@@ -174,7 +214,7 @@ RowLayout {
                 Widgets.SubtitleLabel {
                     id: titleText
 
-                    width: parent.width - button.width - parent.leftPadding
+                    width: parent.width - (button.visible ? button.width : 0) - parent.leftPadding
                            - parent.rightPadding
 
                     text: tracksListContainer.title
@@ -183,6 +223,8 @@ RowLayout {
 
                 Widgets.IconTrackButton {
                     id: button
+
+                    visible: tracksListContainer.showMenu
 
                     font.pixelSize: VLCStyle.icon_track
 

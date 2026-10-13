@@ -31,6 +31,10 @@ T.Popup {
     id: root
 
     // Settings
+
+    // see TracksListPage.Section
+    property int section: TracksListPage.Section.All
+
     property var preferredWidth : stackView.currentItem.preferredWidth
 
     width: Math.min((typeof preferredWidth !== "undefined")
@@ -85,6 +89,7 @@ T.Popup {
 
         initialItem: TracksListPage {
             trackMenuController: trackMenuController
+            section: root.section
         }
 
         pushEnter: Transition {

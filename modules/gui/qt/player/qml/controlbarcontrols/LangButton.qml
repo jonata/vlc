@@ -29,6 +29,9 @@ Widgets.IconToolButton {
 
     // Proprerties
 
+    // see TracksListPage.Section
+    property int section: TracksListPage.Section.All
+
     readonly property var _parentItem: {
         if ((typeof rootPlayer !== 'undefined') && (rootPlayer !== null))
             return rootPlayer
@@ -65,7 +68,10 @@ Widgets.IconToolButton {
 
             parent: root._parentItem
 
-            x: 0
+            section: root.section
+
+            // single section menus open on the right, below their button
+            x: (root.section === TracksListPage.Section.All) ? 0 : (parent.width - width)
             y: (parent.positionSliderY - height)
             z: 1
 

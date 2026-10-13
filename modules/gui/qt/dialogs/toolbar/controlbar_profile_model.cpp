@@ -110,7 +110,8 @@ decltype (ControlbarProfileModel::m_defaults)
                                 },
                                 {
                                     ControlListModel::VOLUME,
-                                    ControlListModel::LANG_BUTTON,
+                                    ControlListModel::AUDIO_TRACKS_BUTTON,
+                                    ControlListModel::SUBTITLE_TRACKS_BUTTON,
                                     ControlListModel::EXTENDED_BUTTON,
                                     ControlListModel::PLAYLIST_BUTTON
                                 }
