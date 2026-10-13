@@ -278,41 +278,6 @@ T.Pane {
                 }
             }
 
-            Rectangle{
-                id: tickmark
-
-                parent: volControl.background
-
-                x : parent.width * root._fullvolpos
-                width: VLCStyle.dp(1, VLCStyle.scale)
-                height: parent.height
-                radius: VLCStyle.dp(2, VLCStyle.scale)
-
-                // NOTE: This shouldn't be visible when the volume stops before a 100.
-                visible: (root._maxvol > 100)
-
-                // FIXME: tick mark is not visible when it's over slider
-                color: root.sliderColor
-
-                // NOTE: This is a helper to select the default volume when clicking on the
-                //       tickmark. We apply a higher clamp value to achieve that behavior on
-                //       the Slider.
-                MouseArea {
-                    anchors.fill: parent
-
-                    anchors.margins: -(VLCStyle.dp(4, VLCStyle.scale))
-
-                    onPressed: (mouse) => {
-                        mouse.accepted = false
-
-                        if (mouse.modifiers === Qt.ShiftModifier)
-                            return
-
-                        volControl._clamp = 0.1
-                    }
-                }
-            }
-
             MouseArea {
                 id: sliderMouseArea
 
