@@ -325,7 +325,8 @@ T.ProgressBar {
 
         Rectangle {
             id: sliderRect
-            visible: !Player.hasChapters
+            // the block style keeps a single track, the chapters are marked on it
+            visible: !Player.hasChapters || control.blockStyle
             color: control.backgroundColor
             anchors.fill: parent
             radius: control.blockStyle ? VLCStyle.seekBar_radius : implicitHeight
@@ -337,9 +338,10 @@ T.ProgressBar {
             anchors.left: parent.left
             anchors.right: parent.right
             height: control.barHeight
-            visible: Player.hasChapters
+            visible: Player.hasChapters && !control.blockStyle
 
-            model: Player.chapters
+            // the delegates are not children of the repeater, hiding it is not enough
+            model: control.blockStyle ? null : Player.chapters
             Item {
                 Rectangle {
                     id: seekpointsRect
@@ -439,7 +441,7 @@ T.ProgressBar {
             x: _inset
             y: _inset
             width: control.visualPosition * (parent.width - 2 * _inset)
-            visible: !Player.hasChapters
+            visible: !Player.hasChapters || control.blockStyle
             color: control.progressColor
             height: control.barHeight - 2 * _inset
             radius: control.blockStyle ? VLCStyle.seekBar_handleRadius : control._seekPointsRadius
@@ -453,6 +455,26 @@ T.ProgressBar {
                 when: (progressRect.mutabilityGroup !== undefined)
                 value: (Player.playingState === Player.PLAYING_STATE_PLAYING) ? Item.DynamicMutabilityGroup
                                                                               : Item.StaticMutabilityGroup
+            }
+        }
+
+        // chapter separators of the block style
+        Repeater {
+            model: (control.blockStyle && Player.hasChapters) ? Player.chapters : null
+
+            delegate: Rectangle {
+                required property var model
+
+                readonly property real _inset: VLCStyle.seekBar_inset
+
+                visible: (model.startPosition ?? 0) > 0
+
+                x: _inset + (model.startPosition ?? 0) * (sliderRect.width - 2 * _inset) - width / 2
+                y: _inset
+                width: VLCStyle.dp(2, VLCStyle.scale)
+                height: control.barHeight - 2 * _inset
+
+                color: Qt.lighter(control.backgroundColor, 2.5)
             }
         }
 
