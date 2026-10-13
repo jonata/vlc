@@ -145,7 +145,7 @@ static int updatePalette(vlc_qt_theme_provider_t* obj)
 
         if (!strcmp(accentColor, "default"))
         {
-            accent = QColor( sys->m_isDark ? "#FF8800" : "#FF610A" );
+            accent = QColor( sys->m_isDark ? "#D37918" : "#FF610A" );
             accentPressed = QColor( sys->m_isDark ? "#e67a30" : "#e65609" );
         }
 #if QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
@@ -442,6 +442,11 @@ static int updatePalette(vlc_qt_theme_provider_t* obj)
         setQtColorSetBg(obj, CS, VQTC_NAME_PRIMARY, QPalette::Button);
 
         setQtColor(obj, CS, VQTC_SECTION_FG, VQTC_NAME_PRIMARY, VQTC_STATE_NORMAL, accent);
+
+        QColor accentTint = accent;
+        accentTint.setAlphaF(0.3);
+        setQtColor(obj, CS, VQTC_SECTION_BG, VQTC_NAME_HIGHLIGHT, VQTC_STATE_NORMAL, accentTint);
+
         setQtColor(obj, CS, VQTC_SECTION_FG, VQTC_NAME_NEUTRAL, VQTC_STATE_NORMAL, neutral);
         setQtColor(obj, CS, VQTC_SECTION_FG, VQTC_NAME_NEGATIVE, VQTC_STATE_NORMAL, negative);
     }

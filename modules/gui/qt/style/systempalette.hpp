@@ -111,12 +111,16 @@ public:
     Q_PROPERTY(CSDMetrics* csdMetrics READ getCSDMetrics NOTIFY CSDMetricsChanged FINAL)
 
     //standard color definitions used by light/dark themes
-    COLOR_DEFINITION(orange500, "#FF8800");
+    COLOR_DEFINITION(orange500, "#D37918");
     COLOR_DEFINITION(orange800, "#FF610A");
 
     COLOR_DEFINITION(orange400, "#f89a06"); //FIXME name have been chosen randomly by me
     COLOR_DEFINITION(orange200, "#e29a06"); //FIXME name have been chosen randomly by me
 
+    COLOR_DEFINITION(orange900, "#371F06"); // accent tinted background
+
+    COLOR_DEFINITION(darkGrey50, "#090909");
+    COLOR_DEFINITION(darkGrey100, "#1B1B1B");
     COLOR_DEFINITION(darkGrey200, "#1E1E1E");
     COLOR_DEFINITION(darkGrey300, "#212121");
     COLOR_DEFINITION(darkGrey400, "#242424");
@@ -132,6 +136,8 @@ public:
     COLOR_DEFINITION(lightGrey500, "#E9E9E9");
     COLOR_DEFINITION(lightGrey600, "#E5E5E5");
     COLOR_DEFINITION(lightGrey700, "#E0E0E0");
+
+    COLOR_DEFINITION(midGrey500, "#8F8F8F");
 
     COLOR_DEFINITION(red500, "#FF0000");
 
