@@ -22,6 +22,7 @@ import QtQuick.Layouts
 import VLC.MainInterface
 import VLC.Style
 import VLC.Player
+import VLC.Playlist
 import VLC.Dialogs
 import VLC.Widgets as Widgets
 import VLC.Util
@@ -71,6 +72,45 @@ FocusScope {
 
     // outline thickness of each choice of the subtitle style
     readonly property var _outlineThicknesses: [0, 2, 4, 6]
+
+    // Sleep timer: pauses the playback after a delay, or stops it at the
+    // end of the current media. The delays are in minutes, 0 is off and -1
+    // is the end of the current media.
+    readonly property var _sleepDelays: [0, 15, 30, 45, 60, 90, -1]
+    property int sleepChoice: 0
+    property real _sleepDeadline: 0
+    property int _sleepRemaining: 0 // in seconds
+
+    onSleepChoiceChanged: {
+        const minutes = _sleepDelays[sleepChoice]
+        _sleepDeadline = (minutes > 0) ? Date.now() + minutes * 60 * 1000 : 0
+        _sleepRemaining = minutes * 60
+    }
+
+    Timer {
+        interval: 1000
+        repeat: true
+        running: root._sleepDeadline > 0
+
+        onTriggered: {
+            root._sleepRemaining = Math.max(0, Math.round((root._sleepDeadline - Date.now()) / 1000))
+            if (root._sleepRemaining === 0) {
+                MainPlaylistController.pause()
+                root.sleepChoice = 0
+            }
+        }
+    }
+
+    Connections {
+        target: MainPlaylistController
+        enabled: root._sleepDelays[root.sleepChoice] === -1
+
+        // the next media started: the current one has ended
+        function onCurrentIndexChanged() {
+            MainPlaylistController.stop()
+            root.sleepChoice = 0
+        }
+    }
 
     Rectangle {
         anchors.fill: parent
@@ -658,6 +698,70 @@ FocusScope {
                         }
                     }
                     onClicked: Player.toggleABloopState()
+                }
+            }
+
+            SettingsSection {
+                Layout.fillWidth: true
+                title: qsTr("Sleep timer")
+
+                SettingsOptionList {
+                    Layout.fillWidth: true
+
+                    choices: [qsTr("Off"), qsTr("15 minutes"), qsTr("30 minutes"), qsTr("45 minutes"),
+                              qsTr("1 hour"), qsTr("1 hour 30 minutes"), qsTr("End of current media")]
+                    currentIndex: root.sleepChoice
+
+                    onSelected: (index) => { root.sleepChoice = index }
+                }
+
+                T.Label {
+                    Layout.fillWidth: true
+
+                    visible: root._sleepDeadline > 0
+
+                    text: qsTr("Pausing in %1").arg(
+                              Math.floor(root._sleepRemaining / 60) + ":" + String(root._sleepRemaining % 60).padStart(2, "0"))
+                    color: theme.accent
+                    font.pixelSize: VLCStyle.fontSize_normal
+                }
+            }
+
+            SettingsSection {
+                Layout.fillWidth: true
+                title: qsTr("Chapters")
+
+                visible: Player.hasChapters
+
+                SettingsOptionList {
+                    Layout.fillWidth: true
+                    model: Player.chapters
+                }
+            }
+
+            SettingsSection {
+                Layout.fillWidth: true
+                title: qsTr("Titles")
+                expanded: false
+
+                visible: Player.hasTitles
+
+                SettingsOptionList {
+                    Layout.fillWidth: true
+                    model: Player.titles
+                }
+            }
+
+            SettingsSection {
+                Layout.fillWidth: true
+                title: qsTr("Programs")
+                expanded: false
+
+                visible: Player.hasPrograms
+
+                SettingsOptionList {
+                    Layout.fillWidth: true
+                    model: Player.programs
                 }
             }
         }
