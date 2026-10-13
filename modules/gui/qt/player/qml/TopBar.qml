@@ -49,6 +49,9 @@ FocusScope{
 
     property string title
 
+    // shown in the breadcrumb when not empty, instead of the library section
+    property string folderName
+
     property bool showCSD: false
     property bool showToolbar: false
     property bool pinControls: false
@@ -404,10 +407,10 @@ FocusScope{
                 visible: root._compact
                 enabled: visible
 
-                iconTxt: root._sectionIcon
-                text: root._sectionName
+                iconTxt: (root.folderName !== "") ? VLCIcons.folder : root._sectionIcon
+                text: (root.folderName !== "") ? root.folderName : root._sectionName
 
-                Accessible.name: qsTr("Back to %1").arg(root._sectionName)
+                Accessible.name: qsTr("Back to the library")
 
                 AccessibleCompat.id: "topBarBreadcrumbButton"
 

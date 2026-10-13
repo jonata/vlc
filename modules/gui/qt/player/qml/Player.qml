@@ -986,6 +986,15 @@ FocusScope {
         // media without a title fall back to the name shown in the window title
         title: (Player.title !== "") ? Player.title : Player.name
 
+        // name of the folder containing the media, local files only
+        folderName: {
+            const url = Player.url.toString()
+            if (!url.startsWith("file://"))
+                return ""
+            const parts = decodeURIComponent(url.substring(7)).split("/")
+            return (parts.length > 2) ? parts[parts.length - 2] : ""
+        }
+
         pinControls: MainCtx.pinVideoControls
 
         showCSD: MainCtx.clientSideDecoration && (MainCtx.intfMainWindow.visibility !== Window.FullScreen)
