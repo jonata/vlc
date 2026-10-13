@@ -896,6 +896,7 @@ libqt_plugin_la_RES = \
 	pixmaps/icons/ic_fluent_text_change_case_24_regular.svg \
 	pixmaps/icons/redesign/add.svg \
 	pixmaps/icons/redesign/arrow_left.svg \
+	pixmaps/icons/redesign/audio_tracks.svg \
 	pixmaps/icons/redesign/bookmark.svg \
 	pixmaps/icons/redesign/check.svg \
 	pixmaps/icons/redesign/chevron_down.svg \
@@ -903,6 +904,7 @@ libqt_plugin_la_RES = \
 	pixmaps/icons/redesign/chevron_right.svg \
 	pixmaps/icons/redesign/chevron_up.svg \
 	pixmaps/icons/redesign/close.svg \
+	pixmaps/icons/redesign/folder.svg \
 	pixmaps/icons/redesign/fullscreen.svg \
 	pixmaps/icons/redesign/grid.svg \
 	pixmaps/icons/redesign/home.svg \
@@ -916,6 +918,7 @@ libqt_plugin_la_RES = \
 	pixmaps/icons/redesign/open.svg \
 	pixmaps/icons/redesign/pause.svg \
 	pixmaps/icons/redesign/play.svg \
+	pixmaps/icons/redesign/pip.svg \
 	pixmaps/icons/redesign/playback_settings.svg \
 	pixmaps/icons/redesign/previous.svg \
 	pixmaps/icons/redesign/profile.svg \
