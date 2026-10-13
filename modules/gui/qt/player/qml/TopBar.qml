@@ -552,6 +552,30 @@ FocusScope{
 
         visible: root._showTopBar
 
+        // leaves the player, the video keeps playing in the picture-in-picture player
+        Widgets.IconToolButton {
+            id: compactPipBtn
+
+            anchors.verticalCenter: parent.verticalCenter
+
+            visible: root._compact && MainCtx.canShowVideoPIP && MainCtx.hasEmbededVideo
+            enabled: visible
+
+            font.pixelSize: VLCStyle.icon_normal
+            text: VLCIcons.pip
+            description: qsTr("Picture in picture")
+
+            AccessibleCompat.id: "topBarPipButton"
+
+            Navigation.parentItem: root
+            Navigation.leftItem: breadcrumb
+            Navigation.rightItem: compactFullscreenBtn
+
+            onClicked: root.backRequested()
+
+            onHoveredChanged: root.requestLockUnlockAutoHide(hovered)
+        }
+
         Widgets.IconToolButton {
             id: compactFullscreenBtn
 
