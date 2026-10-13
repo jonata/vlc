@@ -97,8 +97,7 @@ T.Pane {
         Widgets.SliderExt {
             id: volControl
 
-            // FIXME: use VLCStyle
-            implicitWidth: VLCStyle.dp(100, VLCStyle.scale)
+            implicitWidth: VLCStyle.volumeWedge_width
 
             // WARNING: Directly setting the insets break handle and background positioning.
             Binding on topInset {
@@ -126,6 +125,50 @@ T.Pane {
             property bool filterEvents: false
 
             color: root.sliderColor
+
+            background: Item {
+                x: volControl.leftPadding
+                y: volControl.topPadding + (volControl.availableHeight - height) / 2
+
+                implicitWidth: VLCStyle.volumeWedge_width
+                implicitHeight: VLCStyle.volumeWedge_height
+
+                width: volControl.availableWidth
+                height: implicitHeight
+
+                scale: volControl.mirrored ? -1 : 1
+
+                Image {
+                    anchors.fill: parent
+
+                    source: "qrc:///misc/volume_wedge_bg.svg"
+                    sourceSize: Qt.size(width, height)
+                }
+
+                // the fill is clipped at the current position, so the
+                // gradient always maps to the same volume levels
+                Item {
+                    id: wedgeFillClip
+
+                    readonly property real _hInset: parent.width * (1.5 / 89)
+                    readonly property real _vInset: parent.height * (1.72 / 28)
+
+                    x: _hInset
+                    y: _vInset
+                    width: volControl.position * (parent.width - 2 * _hInset)
+                    height: parent.height - 2 * _vInset
+
+                    clip: true
+
+                    Image {
+                        width: parent.parent.width - 2 * wedgeFillClip._hInset
+                        height: parent.height
+
+                        source: "qrc:///misc/volume_wedge_fill.svg"
+                        sourceSize: Qt.size(width, height)
+                    }
+                }
+            }
 
             from: 0
             to: root._maxvolpos
