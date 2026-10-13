@@ -169,12 +169,20 @@ void VideoWindowHandler::setVideoSize(unsigned int w, unsigned int h, Qt::Window
 
                         const auto dW = (windowSize.width() - pslSize.width());
                         const auto dH = (windowSize.height() - pslSize.height());
-                        assert(dW >= 0 && dH >= 0); // psl can not be bigger than the window
 
-                        msg_Dbg( m_intf, "Autoresize interface window size compensation: %ix%i", dW, dH );
+                        // psl can not be bigger than the window once laid out, but it
+                        // may be while the window is still being set up at startup
+                        if (dW >= 0 && dH >= 0)
+                        {
+                            msg_Dbg( m_intf, "Autoresize interface window size compensation: %ix%i", dW, dH );
 
-                        w += dW;
-                        h += dH;
+                            w += dW;
+                            h += dH;
+                        }
+                        else
+                        {
+                            msg_Dbg( m_intf, "Autoresize interface window size compensation skipped, layout not ready" );
+                        }
                     }
                 }
             }
