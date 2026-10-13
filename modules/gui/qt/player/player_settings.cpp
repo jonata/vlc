@@ -22,6 +22,7 @@
 
 #include "player_settings.hpp"
 
+#include <algorithm>
 #include <cmath>
 
 #include <vlc_common.h>
@@ -309,4 +310,122 @@ void AudioEqualizer::applyBands()
         if (const auto aout = m_player->getAout(); aout != nullptr)
             var_SetString(aout.get(), "equalizer-bands", qtu(bands));
     }
+}
+
+//
+// SubtitleStyle
+//
+
+SubtitleStyle::SubtitleStyle(QObject *parent)
+    : QObject(parent)
+{
+    m_textScale = config_GetInt("sub-text-scale");
+    m_textColor = QColor::fromRgb(config_GetInt("freetype-color") & 0xFFFFFF);
+    m_outlineThickness = config_GetInt("freetype-outline-thickness");
+    m_backgroundOpacity = config_GetInt("freetype-background-opacity");
+    m_margin = config_GetInt("sub-margin");
+}
+
+void SubtitleStyle::setPlayer(PlayerController *player)
+{
+    if (m_player == player)
+        return;
+    m_player = player;
+
+    // the player has its own text scale, which takes precedence over the configuration
+    if (m_player)
+    {
+        vlc_player_t *vlcPlayer = m_player->getPlayer();
+        vlc_player_Lock(vlcPlayer);
+        const int scale = vlc_player_GetSubtitleTextScale(vlcPlayer);
+        vlc_player_Unlock(vlcPlayer);
+
+        if (scale != m_textScale)
+        {
+            m_textScale = scale;
+            emit textScaleChanged();
+        }
+    }
+
+    emit playerChanged();
+}
+
+void SubtitleStyle::setTextScale(int scale)
+{
+    scale = std::clamp(scale, 10, 500);
+    if (m_textScale == scale)
+        return;
+    m_textScale = scale;
+    config_PutInt("sub-text-scale", scale);
+
+    if (m_player)
+    {
+        vlc_player_t *vlcPlayer = m_player->getPlayer();
+        vlc_player_Lock(vlcPlayer);
+        vlc_player_SetSubtitleTextScale(vlcPlayer, scale);
+        vlc_player_Unlock(vlcPlayer);
+    }
+
+    emit textScaleChanged();
+}
+
+void SubtitleStyle::setTextColor(const QColor &color)
+{
+    if (m_textColor == color)
+        return;
+    m_textColor = color;
+    config_PutInt("freetype-color", color.rgb() & 0xFFFFFF);
+    emit textColorChanged();
+}
+
+void SubtitleStyle::setOutlineThickness(int thickness)
+{
+    thickness = std::clamp(thickness, 0, 50);
+    if (m_outlineThickness == thickness)
+        return;
+    m_outlineThickness = thickness;
+    config_PutInt("freetype-outline-thickness", thickness);
+    emit outlineThicknessChanged();
+}
+
+void SubtitleStyle::setBackgroundOpacity(int opacity)
+{
+    opacity = std::clamp(opacity, 0, 255);
+    if (m_backgroundOpacity == opacity)
+        return;
+    m_backgroundOpacity = opacity;
+    config_PutInt("freetype-background-opacity", opacity);
+    emit backgroundOpacityChanged();
+}
+
+void SubtitleStyle::setMargin(int margin)
+{
+    margin = std::max(margin, 0);
+    if (m_margin == margin)
+        return;
+    m_margin = margin;
+    config_PutInt("sub-margin", margin);
+
+    // the video outputs have their own variable
+    if (m_player)
+    {
+        for (const auto &vout : m_player->getVouts())
+            var_SetInteger(vout.get(), "sub-margin", margin);
+    }
+
+    emit marginChanged();
+}
+
+void SubtitleStyle::reset()
+{
+    const auto defaultInt = [](const char *name) {
+        const module_config_t *item = config_FindConfig(name);
+        return item ? static_cast<int>(item->orig.i) : 0;
+    };
+
+    setTextScale(defaultInt("sub-text-scale"));
+    setTextColor(QColor::fromRgb(defaultInt("freetype-color") & 0xFFFFFF));
+    setOutlineThickness(defaultInt("freetype-outline-thickness"));
+    setBackgroundOpacity(defaultInt("freetype-background-opacity"));
+    setMargin(defaultInt("sub-margin"));
 }

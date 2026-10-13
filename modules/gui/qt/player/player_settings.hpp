@@ -19,6 +19,7 @@
 #ifndef VLC_QT_PLAYER_SETTINGS_HPP
 #define VLC_QT_PLAYER_SETTINGS_HPP
 
+#include <QColor>
 #include <QObject>
 #include <QPointer>
 #include <QStringList>
@@ -138,6 +139,70 @@ private:
     float m_preamp = 0.f;
     QList<float> m_bands;
     int m_preset = -1;
+};
+
+/**
+ * Style of the subtitles rendered by VLC (text renderer and video output
+ * options).
+ *
+ * These options are read again each time a subtitle is rendered, so that
+ * changes apply to the subtitles currently shown. The text scale is set on
+ * the player, which has its own value.
+ */
+class SubtitleStyle : public QObject
+{
+    Q_OBJECT
+
+    Q_PROPERTY(PlayerController* player READ player WRITE setPlayer NOTIFY playerChanged FINAL)
+    // size relative to the default one, in percent
+    Q_PROPERTY(int textScale READ textScale WRITE setTextScale NOTIFY textScaleChanged FINAL)
+    Q_PROPERTY(QColor textColor READ textColor WRITE setTextColor NOTIFY textColorChanged FINAL)
+    Q_PROPERTY(int outlineThickness READ outlineThickness WRITE setOutlineThickness NOTIFY outlineThicknessChanged FINAL)
+    // opacity of the box drawn behind the text, from 0 to 255
+    Q_PROPERTY(int backgroundOpacity READ backgroundOpacity WRITE setBackgroundOpacity NOTIFY backgroundOpacityChanged FINAL)
+    // distance from the bottom of the video, in pixels
+    Q_PROPERTY(int margin READ margin WRITE setMargin NOTIFY marginChanged FINAL)
+
+public:
+    explicit SubtitleStyle(QObject *parent = nullptr);
+
+    PlayerController *player() const { return m_player; }
+    void setPlayer(PlayerController *player);
+
+    int textScale() const { return m_textScale; }
+    void setTextScale(int scale);
+
+    QColor textColor() const { return m_textColor; }
+    void setTextColor(const QColor &color);
+
+    int outlineThickness() const { return m_outlineThickness; }
+    void setOutlineThickness(int thickness);
+
+    int backgroundOpacity() const { return m_backgroundOpacity; }
+    void setBackgroundOpacity(int opacity);
+
+    int margin() const { return m_margin; }
+    void setMargin(int margin);
+
+    /// restores the default values of the options
+    Q_INVOKABLE void reset();
+
+signals:
+    void playerChanged();
+    void textScaleChanged();
+    void textColorChanged();
+    void outlineThicknessChanged();
+    void backgroundOpacityChanged();
+    void marginChanged();
+
+private:
+    QPointer<PlayerController> m_player;
+
+    int m_textScale = 100;
+    QColor m_textColor = Qt::white;
+    int m_outlineThickness = 4;
+    int m_backgroundOpacity = 0;
+    int m_margin = 0;
 };
 
 #endif // VLC_QT_PLAYER_SETTINGS_HPP

@@ -319,6 +319,7 @@ void MainUI::registerQMLTypes()
         qmlRegisterType<PlayerHighResolutionTimeUpdater>(uri, versionMajor, versionMinor, "HighResolutionTimeUpdater");
         qmlRegisterType<VideoAdjust>(uri, versionMajor, versionMinor, "VideoAdjust");
         qmlRegisterType<AudioEqualizer>(uri, versionMajor, versionMinor, "AudioEqualizer");
+        qmlRegisterType<SubtitleStyle>(uri, versionMajor, versionMinor, "SubtitleStyle");
         qmlRegisterUncreatableMetaObject(VLCTickForeign::staticMetaObject, uri, versionMajor, versionMinor, "VLCTick", "Not Instantiable" );
         qmlRegisterTypesAndRevisions<VLCDuration>(uri, versionMajor);
         qmlRegisterTypesAndRevisions<VLCTime>(uri, versionMajor);
