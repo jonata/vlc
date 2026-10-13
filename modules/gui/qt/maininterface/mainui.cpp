@@ -29,6 +29,7 @@
 #include "player/control_list_model.hpp"
 #include "player/control_list_filter.hpp"
 #include "player/player_settings.hpp"
+#include "player/audio_waveform.hpp"
 #include "player/delay_estimator.hpp"
 
 #include "dialogs/toolbar/controlbar_profile_model.hpp"
@@ -320,6 +321,7 @@ void MainUI::registerQMLTypes()
         qmlRegisterType<VideoAdjust>(uri, versionMajor, versionMinor, "VideoAdjust");
         qmlRegisterType<AudioEqualizer>(uri, versionMajor, versionMinor, "AudioEqualizer");
         qmlRegisterType<SubtitleStyle>(uri, versionMajor, versionMinor, "SubtitleStyle");
+        qmlRegisterType<AudioWaveform>(uri, versionMajor, versionMinor, "AudioWaveform");
         // the enums are declared by VLCTick itself, VLCTickForeign has none
         qmlRegisterUncreatableMetaObject(VLCTick::staticMetaObject, uri, versionMajor, versionMinor, "VLCTick", "Not Instantiable" );
         qmlRegisterTypesAndRevisions<VLCDuration>(uri, versionMajor);
