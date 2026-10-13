@@ -1234,6 +1234,9 @@ libqml_module_player_a_QML = \
 	player/qml/TracksPageAudio.qml \
 	player/qml/TracksPageSpeed.qml \
 	player/qml/TracksPageSubtitle.qml \
+	player/qml/SettingsOptionList.qml \
+	player/qml/SettingsSection.qml \
+	player/qml/SettingsSlider.qml \
 	player/qml/TracksListPage.qml \
 	player/qml/ControlLayout.qml \
 	player/qml/ControlRepeater.qml \

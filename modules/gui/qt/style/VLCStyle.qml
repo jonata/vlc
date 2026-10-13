@@ -351,6 +351,16 @@ QtObject {
     readonly property int videoFrame_inset: MainCtx.dp(10, scale)
     readonly property int videoFrame_radius: MainCtx.dp(9, scale)
 
+    // Player settings sidebar
+    readonly property int settingsSidebar_width: MainCtx.dp(360, scale)
+    readonly property int settingsSection_radius: MainCtx.dp(6, scale)
+    readonly property int settingsSection_padding: MainCtx.dp(16, scale)
+    readonly property int settingsSlider_height: MainCtx.dp(16, scale)
+    readonly property int settingsSlider_inset: MainCtx.dp(2, scale)
+    readonly property int settingsSlider_radius: MainCtx.dp(4, scale)
+    readonly property int settingsSlider_handleWidth: MainCtx.dp(6, scale)
+    readonly property int settingsSlider_handleHeight: MainCtx.dp(20, scale)
+
     // Volume wedge
     readonly property int volumeWedge_width: MainCtx.dp(88, scale)
     readonly property int volumeWedge_height: MainCtx.dp(28, scale)
