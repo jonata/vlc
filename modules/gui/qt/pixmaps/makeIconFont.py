@@ -167,6 +167,9 @@ def main(model_fd):
         c = font.createChar(charcode)
         glyph["charcode"]  = "\\u{:x}".format(charcode)
         c.importOutlines(glyph["path"])
+        # outlined strokes may overlap each other
+        c.removeOverlap()
+        c.correctDirection()
         #scale glyph to fit between 200 (base line) and 800 (x 0.6)
         #c.transform((0.6, 0.0, 0.0, 0.6, 200, 200.))
         c.vwidth = 1024
