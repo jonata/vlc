@@ -465,10 +465,36 @@ T.ProgressBar {
             property bool display: false
             property bool buffering: Player.buffering > 0 && Player.buffering < 1
 
-            height: control.barHeight
+            // buffering briefly restarts from zero on every seek, only show the
+            // loading animation if it does not progress for a while
+            property bool waiting: false
+            readonly property bool _bufferingNotStarted: Player.buffering === 0
+
+            readonly property real _inset: control.blockStyle ? VLCStyle.seekBar_inset : 0
+
+            y: _inset
+            height: control.barHeight - 2 * _inset
             opacity: 0.4
             color: theme.fg.neutral //FIXME buffer color ?
-            radius: control.blockStyle ? VLCStyle.seekBar_radius : control.barHeight
+            radius: control.blockStyle ? VLCStyle.seekBar_handleRadius : control.barHeight
+
+            on_BufferingNotStartedChanged: {
+                if (_bufferingNotStarted) {
+                    waitingTimer.start()
+                } else {
+                    waitingTimer.stop()
+                    waiting = false
+                }
+            }
+
+            Component.onCompleted: waiting = _bufferingNotStarted
+
+            Timer {
+                id: waitingTimer
+                interval: VLCStyle.duration_humanMoment
+                repeat: false
+                onTriggered: bufferRect.waiting = true
+            }
 
             // TODO: Do not use `Binding` when minimum Qt is 6.12:
             Binding {
@@ -509,18 +535,18 @@ T.ProgressBar {
                         target: bufferRect
                         width: bufferAnimWidth
                         visible: false
-                        x: 0
+                        x: bufferRect._inset
                         animateLoading: false
                     }
                 },
                 State {
                     name: "buffering not started"
-                    when: control.visible && Player.buffering === 0
+                    when: control.visible && Player.buffering === 0 && bufferRect.waiting
                     PropertyChanges {
                         target: bufferRect
                         width: bufferAnimWidth
                         visible: true
-                        x: (bufferAnimPosition / bufferFrames) * (parent.width - bufferAnimWidth)
+                        x: bufferRect._inset + (bufferAnimPosition / bufferFrames) * (parent.width - 2 * bufferRect._inset - bufferAnimWidth)
                         animateLoading: true
                     }
                 },
@@ -529,9 +555,9 @@ T.ProgressBar {
                     when: control.visible && bufferRect.display
                     PropertyChanges {
                         target: bufferRect
-                        width: Player.buffering * parent.width
+                        width: Player.buffering * (parent.width - 2 * bufferRect._inset)
                         visible: true
-                        x: 0
+                        x: bufferRect._inset
                         animateLoading: false
                     }
                 },
@@ -540,9 +566,9 @@ T.ProgressBar {
                     when: control.visible && !bufferRect.display
                     PropertyChanges {
                         target: bufferRect
-                        width: Player.buffering * parent.width
+                        width: Player.buffering * (parent.width - 2 * bufferRect._inset)
                         visible: false
-                        x: 0
+                        x: bufferRect._inset
                         animateLoading: false
                     }
                 }
