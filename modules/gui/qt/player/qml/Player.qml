@@ -1294,11 +1294,16 @@ FocusScope {
 
         rightPadding: VLCStyle.applicationHorizontalMargin
         leftPadding: VLCStyle.applicationHorizontalMargin
-        bottomPadding: VLCStyle.applicationVerticalMargin + VLCStyle.margin_xsmall
+        topPadding: _inline ? VLCStyle.controlBarInlinePadding : 0
+        bottomPadding: VLCStyle.applicationVerticalMargin + (_inline ? VLCStyle.controlBarInlinePadding
+                                                                      : VLCStyle.margin_xsmall)
 
-        textPosition: (MainCtx.pinVideoControls)
-                      ? ControlBar.TimeTextPosition.LeftRightSlider
-                      : ControlBar.TimeTextPosition.AboveSlider
+        textPosition: {
+            if (width >= VLCStyle.controlBarInlineMinimumWidth)
+                return ControlBar.TimeTextPosition.Inline
+            return (MainCtx.pinVideoControls) ? ControlBar.TimeTextPosition.LeftRightSlider
+                                              : ControlBar.TimeTextPosition.AboveSlider
+        }
 
         // hide right text so that it won't overlap with play queue
         showRemainingTime: (textPosition !== ControlBar.TimeTextPosition.AboveSlider)

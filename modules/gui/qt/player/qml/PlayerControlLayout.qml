@@ -36,6 +36,10 @@ FocusScope {
 
     property int identifier: -1
 
+    // optional item laid out between the left and right controls, it takes
+    // the remaining space (used for the inline seek bar)
+    property Item centerItem: null
+
     readonly property PlayerControlbarModel model: {
         if (!!MainCtx.controlbarProfileModel.currentModel)
             return MainCtx.controlbarProfileModel.currentModel.getModel(identifier)
@@ -74,10 +78,11 @@ FocusScope {
 
         anchors.fill: parent
 
-        active: !loaderCenter.active &&
+        active: (!loaderCenter.active || !!playerControlLayout.centerItem) &&
                 playerControlLayout.model &&
                 ((playerControlLayout.model.left && (playerControlLayout.model.left.count > 0)) ||
-                (playerControlLayout.model.right && (playerControlLayout.model.right.count > 0)))
+                (playerControlLayout.model.right && (playerControlLayout.model.right.count > 0)) ||
+                (!!playerControlLayout.centerItem && playerControlLayout.model.center && (playerControlLayout.model.center.count > 0)))
 
         focus: active
 
@@ -100,7 +105,7 @@ FocusScope {
 
                 Navigation.parentItem: playerControlLayout
                 Navigation.rightAction: function() {
-                    const item = rightRepeater.itemAt(0)
+                    const item = centerRepeater.itemAt(0) ?? rightRepeater.itemAt(0)
                     if (item)
                         item.forceActiveFocus(Qt.TabFocusReason)
                     else
@@ -117,7 +122,47 @@ FocusScope {
                 }
             }
 
+            // center controls are only shown here when the center is taken by centerItem
+            ControlRepeater {
+                id: centerRepeater
+                model: playerControlLayout.centerItem ? _centerFilter : null
+
+                readonly property ControlListFilter _centerFilter: ControlListFilter {
+                    sourceModel: playerControlLayout.model.center
+
+                    player: Player
+                    ctx: MainCtx
+                }
+
+                Navigation.parentItem: playerControlLayout
+                Navigation.leftAction: function() {
+                    const item = leftRepeater.itemAt(leftRepeater.count - 1)
+                    if (item)
+                        item.forceActiveFocus(Qt.BacktabFocusReason)
+                    else
+                        return false
+                }
+                Navigation.rightAction: function() {
+                    const item = rightRepeater.itemAt(0)
+                    if (item)
+                        item.forceActiveFocus(Qt.TabFocusReason)
+                    else
+                        return false
+                }
+
+                availableWidth: loaderLeftRight.width
+                availableHeight: loaderLeftRight.height
+
+                Component.onCompleted: {
+                    requestLockUnlockAutoHide.connect(playerControlLayout.requestLockUnlockAutoHide)
+                    menuOpened.connect(playerControlLayout.menuOpened)
+                    playerControlLayout.forceUnlock.connect(centerRepeater.forceUnlock)
+                }
+            }
+
             Item {
+                id: centerFiller
+
                 function containsVisibleItem(repeater) {
                     for (let i = 0; i < repeater.count; ++i) {
                         const item = repeater.itemAt(i)
@@ -129,11 +174,18 @@ FocusScope {
                     return false
                 }
 
-                Layout.minimumWidth: (containsVisibleItem(leftRepeater) && containsVisibleItem(rightRepeater)) ? playerControlLayout.layoutSpacing
-                                                                                                               : 0
+                Layout.minimumWidth: {
+                    if (playerControlLayout.centerItem)
+                        return playerControlLayout.centerItem.implicitWidth + 2 * playerControlLayout.layoutSpacing
+                    return (containsVisibleItem(leftRepeater) && containsVisibleItem(rightRepeater)) ? playerControlLayout.layoutSpacing
+                                                                                                     : 0
+                }
 
                 Layout.fillWidth: true
+                Layout.fillHeight: true
                 visible: true
+
+                children: playerControlLayout.centerItem ? [playerControlLayout.centerItem] : []
             }
 
             ControlRepeater {
@@ -147,7 +199,7 @@ FocusScope {
 
                 Navigation.parentItem: playerControlLayout
                 Navigation.leftAction: function() {
-                    const item = leftRepeater.itemAt(leftRepeater.count - 1)
+                    const item = centerRepeater.itemAt(centerRepeater.count - 1) ?? leftRepeater.itemAt(leftRepeater.count - 1)
                     if (item)
                         item.forceActiveFocus(Qt.BacktabFocusReason)
                     else
@@ -225,7 +277,8 @@ FocusScope {
         }
 
         // TODO: "ControlListFilter"'s count......
-        active: !!playerControlLayout.model && !!playerControlLayout.model.center && (playerControlLayout.model.center.count > 0)
+        active: !!playerControlLayout.model && !!playerControlLayout.model.center && (playerControlLayout.model.center.count > 0) &&
+                !playerControlLayout.centerItem
 
         Binding on width {
             delayed: true
