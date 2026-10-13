@@ -29,6 +29,12 @@ FocusScope {
     property string title
     property bool expanded: true
 
+    // shows a switch next to the title
+    property bool checkable: false
+    property bool checked: false
+
+    signal toggled(bool checked)
+
     default property alias contentData: content.data
 
     implicitHeight: card.implicitHeight
@@ -78,13 +84,34 @@ FocusScope {
                 contentItem: Item {
                     T.Label {
                         anchors.left: parent.left
-                        anchors.right: chevron.left
+                        anchors.right: root.checkable ? toggle.left : chevron.left
                         anchors.verticalCenter: parent.verticalCenter
 
                         text: root.title
                         elide: Text.ElideRight
                         color: theme.fg.primary
                         font.pixelSize: VLCStyle.fontSize_normal
+                    }
+
+                    Widgets.CheckButton {
+                        id: toggle
+
+                        anchors.right: chevron.left
+                        anchors.rightMargin: VLCStyle.margin_small
+                        anchors.verticalCenter: parent.verticalCenter
+
+                        visible: root.checkable
+                        enabled: visible
+
+                        text: root.title
+
+                        onClicked: root.toggled(checked)
+
+                        // CheckButton positions its handle when checked changes, which
+                        // needs to happen once its size is known
+                        Component.onCompleted: Qt.callLater(() => {
+                            toggle.checked = Qt.binding(() => root.checked)
+                        })
                     }
 
                     T.Label {

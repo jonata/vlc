@@ -27,7 +27,14 @@ import VLC.Style
 ColumnLayout {
     id: root
 
+    // model providing the "display" and "checked" roles...
     property var model
+
+    // ...or a list of strings, the checked one being currentIndex
+    property var choices: null
+    property int currentIndex: -1
+
+    signal selected(int index)
 
     // shown when the model is empty
     property string emptyText: qsTr("None")
@@ -53,12 +60,16 @@ ColumnLayout {
     Repeater {
         id: repeater
 
-        model: root.model
+        model: root.choices ?? root.model
 
         delegate: T.ItemDelegate {
             id: delegate
 
             required property var model
+            required property int index
+
+            readonly property string optionText: (root.choices !== null) ? model.modelData : model.display
+            readonly property bool optionChecked: (root.choices !== null) ? (index === root.currentIndex) : model.checked
 
             Layout.fillWidth: true
             implicitHeight: VLCStyle.icon_normal + VLCStyle.margin_xsmall
@@ -66,10 +77,15 @@ ColumnLayout {
             hoverEnabled: true
 
             Accessible.role: Accessible.RadioButton
-            Accessible.name: delegate.model.display
-            Accessible.checked: delegate.model.checked
+            Accessible.name: delegate.optionText
+            Accessible.checked: delegate.optionChecked
 
-            onClicked: delegate.model.checked = true
+            onClicked: {
+                if (root.choices !== null)
+                    root.selected(delegate.index)
+                else
+                    delegate.model.checked = true
+            }
 
             contentItem: Item {
                 T.Label {
@@ -84,7 +100,7 @@ ColumnLayout {
                     font.family: VLCIcons.fontFamily
                     font.pixelSize: VLCStyle.icon_small
                     color: theme.accent
-                    visible: delegate.model.checked
+                    visible: delegate.optionChecked
                 }
 
                 T.Label {
@@ -92,9 +108,9 @@ ColumnLayout {
                     anchors.right: parent.right
                     anchors.verticalCenter: parent.verticalCenter
 
-                    text: delegate.model.display
+                    text: delegate.optionText
                     elide: Text.ElideRight
-                    color: (delegate.model.checked || delegate.hovered) ? Qt.lighter(theme.fg.primary, 1.4)
+                    color: (delegate.optionChecked || delegate.hovered) ? Qt.lighter(theme.fg.primary, 1.4)
                                                                          : theme.fg.primary
                     font.pixelSize: VLCStyle.fontSize_normal
                 }
