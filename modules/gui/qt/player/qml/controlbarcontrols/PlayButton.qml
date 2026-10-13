@@ -207,7 +207,7 @@ T.Control {
 
         color: "black" //foreground is always black, the background is always the accent color
 
-        font.pixelSize: VLCStyle.icon_normal * 0.75
+        font.pixelSize: VLCStyle.icon_normal
 
         font.family: VLCIcons.fontFamily
 

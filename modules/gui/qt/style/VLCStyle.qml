@@ -339,6 +339,7 @@ QtObject {
     readonly property int seekBar_handleWidth: MainCtx.dp(8, scale)
     readonly property int seekBar_handleRadius: MainCtx.dp(4, scale)
     readonly property int seekBar_timeWidth: MainCtx.dp(76, scale)
+    readonly property int seekBar_timeFontSize: MainCtx.dp(15, scale)
 
     // Play button (pill)
     readonly property int playButton_width: MainCtx.dp(54, scale)

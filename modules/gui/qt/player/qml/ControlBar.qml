@@ -56,6 +56,9 @@ T.Pane {
 
     readonly property bool _inline: (textPosition === ControlBar.TimeTextPosition.Inline)
 
+    // the single row layout always shows the hours, like in the design
+    readonly property int _timeFormatFlags: _inline ? VLCTick.AlwaysShowHours : 0
+
     property var menu: undefined
 
     signal requestLockUnlockAutoHide(bool lock)
@@ -104,8 +107,16 @@ T.Pane {
 
     TextMetrics {
         id: timeTextMetrics
-        font.pixelSize: (textPosition === ControlBar.TimeTextPosition.LeftRightSlider) ? VLCStyle.fontSize_small
-                                                                                       : VLCStyle.fontSize_normal
+        font.pixelSize: {
+            switch (textPosition) {
+            case ControlBar.TimeTextPosition.LeftRightSlider:
+                return VLCStyle.fontSize_small
+            case ControlBar.TimeTextPosition.Inline:
+                return VLCStyle.seekBar_timeFontSize
+            default:
+                return VLCStyle.fontSize_normal
+            }
+        }
 
         readonly property real preferredWidth: {
             switch (textPosition) {
@@ -122,7 +133,7 @@ T.Pane {
             // Length might not be reported in some cases, for that reason we should check both and use the bigger one.
 
             // Some extra space to compensate non-monospaced fonts ("-" takes more space than ":", double "-" for guarantee)
-            return (Player.time.isSubHour() && Player.length.isSubHour()) ? "00--00" : "00--00--00"
+            return (Player.time.isSubHour() && Player.length.isSubHour() && !root._inline) ? "00--00" : "00--00--00"
         }
     }
 
@@ -149,7 +160,8 @@ T.Pane {
 
                 text: {
                     const length = Player.length
-                    return Player.time.formatHMS(length.isSubSecond() ? VLCTick.SubSecondFormattedAsMS : 0)
+                    return Player.time.formatHMS((length.isSubSecond() ? VLCTick.SubSecondFormattedAsMS : 0)
+                                                 | root._timeFormatFlags)
                 }
                 color: theme.fg.primary
                 font: timeTextMetrics.font
@@ -175,8 +187,8 @@ T.Pane {
                 readonly property bool showRemainingTime: (MainCtx.showRemainingTime && Player.remainingTime.valid())
 
                 text: showRemainingTime
-                      ? "-" + Player.remainingTime.formatHMS()
-                      : Player.length.formatHMS()
+                      ? "-" + Player.remainingTime.formatHMS(VLCTick.SubSecondFormattedAsMS | root._timeFormatFlags)
+                      : Player.length.formatHMS(VLCTick.SubSecondFormattedAsMS | root._timeFormatFlags)
                 color: mediaTime.color
                 font: timeTextMetrics.font
                 horizontalAlignment: Text.AlignHCenter
