@@ -345,6 +345,12 @@ QtObject {
     readonly property int playButton_height: MainCtx.dp(28, scale)
     readonly property int playButton_radius: MainCtx.dp(6, scale)
 
+    // Player top bar and framed video (pinned controls)
+    readonly property int playerTopBar_height: MainCtx.dp(40, scale)
+    readonly property int playerTopBar_separatorHeight: MainCtx.dp(20, scale)
+    readonly property int videoFrame_inset: MainCtx.dp(10, scale)
+    readonly property int videoFrame_radius: MainCtx.dp(19, scale)
+
     // Volume wedge
     readonly property int volumeWedge_width: MainCtx.dp(88, scale)
     readonly property int volumeWedge_height: MainCtx.dp(28, scale)

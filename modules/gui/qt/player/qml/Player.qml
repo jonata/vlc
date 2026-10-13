@@ -62,6 +62,9 @@ FocusScope {
 
     property bool _keyPressed: false
 
+    // the video is shown inside a rounded frame between the bars
+    readonly property bool _framedVideo: MainCtx.hasEmbededVideo && _controlsUnderVideo
+
     // Settings
 
     Accessible.role: Accessible.Client
@@ -185,6 +188,9 @@ FocusScope {
             right: parent.right
             top: (MainCtx.hasEmbededVideo && rootPlayer._controlsUnderVideo) ? topBar.bottom : parent.top
             bottom: (MainCtx.hasEmbededVideo && rootPlayer._controlsUnderVideo) ? controlBar.top : parent.bottom
+
+            leftMargin: rootPlayer._framedVideo ? VLCStyle.videoFrame_inset : 0
+            rightMargin: rootPlayer._framedVideo ? VLCStyle.videoFrame_inset : 0
         }
 
         sourceComponent: MainCtx.hasEmbededVideo ? videoComponent : audioComponent
@@ -929,6 +935,25 @@ FocusScope {
         }
     }
 
+    // Rounds the corners of the video and fills the margins around it. The
+    // border overlaps the bars by its own width so only the inner edge shows.
+    Rectangle {
+        id: videoFrame
+
+        visible: rootPlayer._framedVideo
+
+        x: 0
+        y: playerSpecializationLoader.y - border.width
+        width: rootPlayer.width
+        height: playerSpecializationLoader.height + 2 * border.width
+
+        color: "transparent"
+        radius: VLCStyle.videoFrame_radius
+
+        border.width: VLCStyle.videoFrame_inset
+        border.color: windowTheme.bg.primary
+    }
+
     TopBar {
         id: topBar
 
@@ -1344,7 +1369,9 @@ FocusScope {
             visible: !MainCtx.hasEmbededVideo || MainCtx.pinVideoControls || !rootPlayer.displayFadeRectangles
 
             opacity: {
-                if (MainCtx.hasEmbededVideo && !MainCtx.pinVideoControls && !rootPlayer.displayFadeRectangles) {
+                if (rootPlayer._framedVideo) {
+                    return 1.0
+                } else if (MainCtx.hasEmbededVideo && !MainCtx.pinVideoControls && !rootPlayer.displayFadeRectangles) {
                     return 0.6
                 } else if ((Window.visibility === Window.FullScreen) && MainCtx.hasEmbededVideo) {
                     return MainCtx.pinOpacity
