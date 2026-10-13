@@ -24,8 +24,12 @@
 #include <QPointer>
 #include <QStringList>
 #include <QVariantList>
+#include <QVariantMap>
 
 #include "player_controller.hpp"
+#include "maininterface/mainctx.hpp"
+
+class QAbstractItemModel;
 
 /**
  * Image adjustments of the video outputs, using the "adjust" video filter.
@@ -203,6 +207,48 @@ private:
     int m_outlineThickness = 4;
     int m_backgroundOpacity = 0;
     int m_margin = 0;
+};
+
+/**
+ * Player settings saved for a folder, typically the episodes of a show, and
+ * restored when a media of this folder is played.
+ *
+ * The values are stored as is, it is up to the caller to collect and apply
+ * them.
+ */
+class PlayerPresets : public QObject
+{
+    Q_OBJECT
+
+    Q_PROPERTY(MainCtx* ctx READ ctx WRITE setCtx NOTIFY ctxChanged FINAL)
+    Q_PROPERTY(QStringList folders READ folders NOTIFY presetsChanged FINAL)
+
+public:
+    explicit PlayerPresets(QObject *parent = nullptr);
+
+    MainCtx *ctx() const { return m_ctx; }
+    void setCtx(MainCtx *ctx);
+
+    QStringList folders() const;
+
+    Q_INVOKABLE bool has(const QString &folder) const;
+    Q_INVOKABLE QVariantMap load(const QString &folder) const;
+    Q_INVOKABLE void save(const QString &folder, const QVariantMap &values);
+    Q_INVOKABLE void remove(const QString &folder);
+
+    /// row of the checked item of a track model, -1 if none
+    Q_INVOKABLE static int checkedRow(QAbstractItemModel *model);
+    /// checks the item at row of a track model, which selects the track
+    Q_INVOKABLE static void checkRow(QAbstractItemModel *model, int row);
+
+signals:
+    void ctxChanged();
+    void presetsChanged();
+
+private:
+    QVariantMap presets() const;
+
+    QPointer<MainCtx> m_ctx;
 };
 
 #endif // VLC_QT_PLAYER_SETTINGS_HPP

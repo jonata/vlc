@@ -321,6 +321,7 @@ void MainUI::registerQMLTypes()
         qmlRegisterType<VideoAdjust>(uri, versionMajor, versionMinor, "VideoAdjust");
         qmlRegisterType<AudioEqualizer>(uri, versionMajor, versionMinor, "AudioEqualizer");
         qmlRegisterType<SubtitleStyle>(uri, versionMajor, versionMinor, "SubtitleStyle");
+        qmlRegisterType<PlayerPresets>(uri, versionMajor, versionMinor, "PlayerPresets");
         qmlRegisterType<AudioWaveform>(uri, versionMajor, versionMinor, "AudioWaveform");
         // the enums are declared by VLCTick itself, VLCTickForeign has none
         qmlRegisterUncreatableMetaObject(VLCTick::staticMetaObject, uri, versionMajor, versionMinor, "VLCTick", "Not Instantiable" );

@@ -33,6 +33,9 @@
 #include <vlc_vout.h>
 
 #include "qt.hpp"
+
+#include <QAbstractItemModel>
+#include <QSettings>
 #include "player_controller.hpp"
 
 #include "../../../audio_filter/equalizer_presets.h"
@@ -428,4 +431,93 @@ void SubtitleStyle::reset()
     setOutlineThickness(defaultInt("freetype-outline-thickness"));
     setBackgroundOpacity(defaultInt("freetype-background-opacity"));
     setMargin(defaultInt("sub-margin"));
+}
+
+//
+// PlayerPresets
+//
+
+namespace {
+
+const QString presetsKey = QStringLiteral("PlayerPresets/presets");
+
+} // namespace
+
+PlayerPresets::PlayerPresets(QObject *parent)
+    : QObject(parent)
+{
+}
+
+void PlayerPresets::setCtx(MainCtx *ctx)
+{
+    if (m_ctx == ctx)
+        return;
+    m_ctx = ctx;
+    emit ctxChanged();
+    emit presetsChanged();
+}
+
+QVariantMap PlayerPresets::presets() const
+{
+    if (!m_ctx)
+        return {};
+    return m_ctx->getIntf()->mainSettings->value(presetsKey).toMap();
+}
+
+QStringList PlayerPresets::folders() const
+{
+    return presets().keys();
+}
+
+bool PlayerPresets::has(const QString &folder) const
+{
+    return !folder.isEmpty() && presets().contains(folder);
+}
+
+QVariantMap PlayerPresets::load(const QString &folder) const
+{
+    return presets().value(folder).toMap();
+}
+
+void PlayerPresets::save(const QString &folder, const QVariantMap &values)
+{
+    if (!m_ctx || folder.isEmpty())
+        return;
+
+    QVariantMap all = presets();
+    all.insert(folder, values);
+    m_ctx->getIntf()->mainSettings->setValue(presetsKey, all);
+    emit presetsChanged();
+}
+
+void PlayerPresets::remove(const QString &folder)
+{
+    if (!m_ctx)
+        return;
+
+    QVariantMap all = presets();
+    if (all.remove(folder) == 0)
+        return;
+    m_ctx->getIntf()->mainSettings->setValue(presetsKey, all);
+    emit presetsChanged();
+}
+
+int PlayerPresets::checkedRow(QAbstractItemModel *model)
+{
+    if (!model)
+        return -1;
+
+    for (int row = 0; row < model->rowCount(); ++row)
+    {
+        if (model->data(model->index(row, 0), Qt::CheckStateRole).toBool())
+            return row;
+    }
+    return -1;
+}
+
+void PlayerPresets::checkRow(QAbstractItemModel *model, int row)
+{
+    if (!model || row < 0 || row >= model->rowCount())
+        return;
+    model->setData(model->index(row, 0), true, Qt::CheckStateRole);
 }
