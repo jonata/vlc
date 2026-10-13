@@ -362,6 +362,9 @@ QtObject {
     readonly property int settingsSlider_handleWidth: MainCtx.dp(6, scale)
     readonly property int settingsSlider_handleHeight: MainCtx.dp(20, scale)
 
+    // Music player
+    readonly property int musicCover_radius: MainCtx.dp(12, scale)
+
     // Volume wedge
     readonly property int volumeWedge_width: MainCtx.dp(88, scale)
     readonly property int volumeWedge_height: MainCtx.dp(28, scale)

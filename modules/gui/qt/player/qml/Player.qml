@@ -605,7 +605,8 @@ FocusScope {
 
                         Item {
                             id: coverItem
-                            Layout.preferredHeight: rootPlayer.height / sizeConstant
+                            // the redesign shows a large cover, filling most of the space
+                            Layout.preferredHeight: centerContent.height * 0.72
                             Layout.preferredWidth: cover.paintedWidth
                             Layout.maximumHeight: centerContent.height
                             Layout.alignment: Qt.AlignHCenter
@@ -629,6 +630,11 @@ FocusScope {
                                 anchors.top: parent.top
                                 anchors.bottom: parent.bottom
                                 anchors.horizontalCenter: parent.horizontalCenter
+
+                                // drawn by roundedCover, this image is the texture provider of
+                                // the cover and of the blurred background
+                                opacity: 0
+
                                 source: targetSource
                                 fillMode: Image.PreserveAspectFit
                                 mipmap: true
@@ -670,6 +676,20 @@ FocusScope {
                                                                                                               })
                                 }
 
+                            }
+
+                            Widgets.ImageExt {
+                                id: roundedCover
+
+                                anchors.centerIn: cover
+                                width: cover.paintedWidth
+                                height: cover.paintedHeight
+
+                                textureProviderItem: cover
+                                radius: VLCStyle.musicCover_radius
+
+                                Accessible.ignored: true
+
                                 Widgets.RoundedRectangleShadow {
                                     color: Qt.rgba(0, 0, 0, .18)
                                     yOffset: VLCStyle.dp(24, VLCStyle.scale)
@@ -696,11 +716,14 @@ FocusScope {
                                 value: centerContent.height > (albumLabel.y + albumLabel.height)
                             }
 
-                            text: Player.album
+                            // "title - artist", like in the redesign
+                            text: (Player.artist !== "") ? qsTr("%1 - %2").arg(topBar.title).arg(Player.artist)
+                                                         : topBar.title
                             font.pixelSize: VLCStyle.fontSize_xxlarge
+                            font.weight: Font.Normal
                             horizontalAlignment: Text.AlignHCenter
                             color: centerTheme.fg.primary
-                            Accessible.description: qsTr("album")
+                            Accessible.description: qsTr("title")
 
                             property bool componentCompleted: false
 
@@ -715,11 +738,8 @@ FocusScope {
                             Layout.alignment: Qt.AlignHCenter
                             Layout.topMargin: VLCStyle.margin_small
 
-                            Binding on visible {
-                                delayed: true
-                                when: artistLabel.componentCompleted
-                                value: centerContent.height > (artistLabel.y + artistLabel.height)
-                            }
+                            // the artist is shown next to the title
+                            visible: false
 
                             text: Player.artist
                             font.weight: Font.Light
@@ -820,15 +840,6 @@ FocusScope {
                             }
 
                             Widgets.IconToolButton {
-                                text: VLCIcons.skip_back
-                                font.pixelSize: VLCStyle.icon_audioPlayerButton
-                                onClicked: Player.jumpBwd()
-                                description: qsTr("Step back")
-
-                                AccessibleCompat.id: "audioStepBackButton"
-                            }
-
-                            Widgets.IconToolButton {
                                 text: VLCIcons.visualization
                                 font.pixelSize: VLCStyle.icon_audioPlayerButton
                                 onClicked: Player.toggleVisualization()
@@ -847,15 +858,6 @@ FocusScope {
                                 Accessible.role: Accessible.Button
                                 Accessible.name: qsTr("Toggle lyrics view")
                                 AccessibleCompat.id: "audioLyricsButton"
-                            }
-
-                            Widgets.IconToolButton{
-                                text: VLCIcons.skip_for
-                                font.pixelSize: VLCStyle.icon_audioPlayerButton
-                                onClicked: Player.jumpFwd()
-                                description: qsTr("Step forward")
-
-                                AccessibleCompat.id: "audioStepForwardButton"
                             }
                         }
 
@@ -1406,7 +1408,8 @@ FocusScope {
             visible: !MainCtx.hasEmbededVideo || MainCtx.pinVideoControls || !rootPlayer.displayFadeRectangles
 
             opacity: {
-                if (rootPlayer._framedVideo) {
+                // the bars are solid when the controls do not cover the content
+                if (rootPlayer._framedVideo || (rootPlayer._controlsUnderVideo && !MainCtx.hasEmbededVideo)) {
                     return 1.0
                 } else if (MainCtx.hasEmbededVideo && !MainCtx.pinVideoControls && !rootPlayer.displayFadeRectangles) {
                     return 0.6
