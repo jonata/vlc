@@ -105,6 +105,13 @@ T.Pane {
         colorSet: ColorContext.Window
     }
 
+    AudioWaveform {
+        id: audioWaveform
+
+        ctx: MainCtx
+        url: (root._inline && !Player.hasVideoOutput && Player.isStarted) ? Player.url : ""
+    }
+
     TextMetrics {
         id: timeTextMetrics
         font.pixelSize: {
@@ -245,6 +252,9 @@ T.Pane {
 
                 barHeight: root._inline ? VLCStyle.seekBar_height : root.sliderHeight
                 blockStyle: root._inline
+
+                // the audio player shows the waveform of local files
+                waveformPeaks: audioWaveform.peaks
 
                 // the slider is reparented between rows, so the palette can not
                 // be reliably inherited from its parent

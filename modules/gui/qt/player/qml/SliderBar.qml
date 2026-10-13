@@ -31,6 +31,11 @@ T.ProgressBar {
     // thick rounded track with an inset progress fill and a bar shaped handle
     property bool blockStyle: false
 
+    // peaks of the audio, from 0 to 1, drawn as bars instead of the progress
+    // fill in the block style
+    property var waveformPeaks: []
+    readonly property bool _hasWaveform: blockStyle && (waveformPeaks?.length ?? 0) > 0
+
     readonly property real _hoveredScalingFactor: blockStyle ? 1.0 : 1.8
     property int barHeight: VLCStyle.dp(5, VLCStyle.scale)
     readonly property real _scaledBarHeight: control.barHeight * _hoveredScalingFactor
@@ -441,7 +446,7 @@ T.ProgressBar {
             x: _inset
             y: _inset
             width: control.visualPosition * (parent.width - 2 * _inset)
-            visible: !Player.hasChapters || control.blockStyle
+            visible: (!Player.hasChapters || control.blockStyle) && !control._hasWaveform
             color: control.progressColor
             height: control.barHeight - 2 * _inset
             radius: control.blockStyle ? VLCStyle.seekBar_handleRadius : control._seekPointsRadius
@@ -455,6 +460,63 @@ T.ProgressBar {
                 when: (progressRect.mutabilityGroup !== undefined)
                 value: (Player.playingState === Player.PLAYING_STATE_PLAYING) ? Item.DynamicMutabilityGroup
                                                                               : Item.StaticMutabilityGroup
+            }
+        }
+
+        // waveform of the block style: the played part is drawn over the
+        // whole waveform, clipped at the current position
+        Item {
+            id: waveform
+
+            readonly property real _inset: VLCStyle.seekBar_inset * 2
+            readonly property real _step: width / Math.max(1, control.waveformPeaks.length)
+
+            visible: control._hasWaveform
+
+            x: _inset
+            y: VLCStyle.seekBar_inset
+            width: sliderRect.width - 2 * _inset
+            height: control.barHeight - 2 * VLCStyle.seekBar_inset
+
+            component WaveformBars: Repeater {
+                id: bars
+
+                property color color
+
+                model: control.waveformPeaks
+
+                delegate: Rectangle {
+                    required property int index
+                    required property real modelData
+
+                    x: index * waveform._step + (waveform._step - width) / 2
+                    width: Math.max(1, waveform._step * 0.6)
+                    // square root, so that the quiet parts remain visible
+                    height: Math.max(VLCStyle.dp(2, VLCStyle.scale), Math.sqrt(modelData) * (waveform.height - VLCStyle.dp(6, VLCStyle.scale)))
+                    y: (waveform.height - height) / 2
+
+                    color: bars.color
+                }
+            }
+
+            WaveformBars {
+                color: Qt.alpha(waveformTheme.fg.primary, 0.6)
+            }
+
+            Item {
+                width: control.visualPosition * waveform.width
+                height: waveform.height
+
+                clip: true
+
+                WaveformBars {
+                    color: theme.fg.primary
+                }
+            }
+
+            ColorContext {
+                id: waveformTheme
+                colorSet: ColorContext.Window
             }
         }
 
@@ -633,9 +695,10 @@ T.ProgressBar {
         x: Math.max(_inset, _inset + control.visualPosition * (control.availableWidth - 2 * _inset) - width)
         y: _inset
 
-        width: VLCStyle.seekBar_handleWidth
+        // a thin line over the waveform
+        width: control._hasWaveform ? VLCStyle.dp(3, VLCStyle.scale) : VLCStyle.seekBar_handleWidth
         height: control.barHeight - 2 * _inset
-        radius: VLCStyle.seekBar_handleRadius
+        radius: control._hasWaveform ? width / 2 : VLCStyle.seekBar_handleRadius
         color: theme.fg.primary
 
         // TODO: Do not use `Binding` when minimum Qt is 6.12:
