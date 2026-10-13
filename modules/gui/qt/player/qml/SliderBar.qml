@@ -28,7 +28,10 @@ import VLC.MainInterface
 T.ProgressBar {
     id: control
 
-    readonly property real _hoveredScalingFactor: 1.8
+    // thick rounded track with an inset progress fill and a bar shaped handle
+    property bool blockStyle: false
+
+    readonly property real _hoveredScalingFactor: blockStyle ? 1.0 : 1.8
     property int barHeight: VLCStyle.dp(5, VLCStyle.scale)
     readonly property real _scaledBarHeight: control.barHeight * _hoveredScalingFactor
     readonly property real _scaledY: (-control.barHeight / 2) * (control._hoveredScalingFactor - 1)
@@ -42,6 +45,7 @@ T.ProgressBar {
     property real _tooltipPosition: (Widgets.PointingToolTipAttached.instance?.pos.x ?? 0.0) / width
 
     property color backgroundColor: theme.bg.primary
+    property color progressColor: blockStyle ? theme.bg.highlight : theme.fg.primary
     property real touchHandlerMargin: VLCStyle.touchHandlerMargin
 
     Keys.onRightPressed: Player.jumpFwd()
@@ -324,7 +328,7 @@ T.ProgressBar {
             visible: !Player.hasChapters
             color: control.backgroundColor
             anchors.fill: parent
-            radius: implicitHeight
+            radius: control.blockStyle ? VLCStyle.seekBar_radius : implicitHeight
         }
 
         Repeater {
@@ -357,7 +361,7 @@ T.ProgressBar {
                     readonly property bool _hovered: hoverHandler.hovered &&
                                             (hoverHandler.point.position.x > x && hoverHandler.point.position.x < x+width)
 
-                    color: _currentChapter < 0 ? theme.fg.primary : control.backgroundColor
+                    color: _currentChapter < 0 ? control.progressColor : control.backgroundColor
                     width: sliderRect.width * seekpointsRect.endPosition - x - control._seekPointsDistance
                     x: sliderRect.width * seekpointsRect.startPosition
 
@@ -370,7 +374,7 @@ T.ProgressBar {
 
                         width: sliderRect.width * control.visualPosition - parent.x - control._seekPointsDistance
                         visible: parent._currentChapter === 0
-                        color: theme.fg.primary
+                        color: control.progressColor
 
                         // We use dynamic mutability group because time interpolation
                         // may induce rapid change:
@@ -429,11 +433,16 @@ T.ProgressBar {
 
         Rectangle {
             id: progressRect
-            width: control.visualPosition * parent.width
+
+            readonly property real _inset: control.blockStyle ? VLCStyle.seekBar_inset : 0
+
+            x: _inset
+            y: _inset
+            width: control.visualPosition * (parent.width - 2 * _inset)
             visible: !Player.hasChapters
-            color: theme.fg.primary
-            height: control.barHeight
-            radius: control._seekPointsRadius
+            color: control.progressColor
+            height: control.barHeight - 2 * _inset
+            radius: control.blockStyle ? VLCStyle.seekBar_handleRadius : control._seekPointsRadius
 
             // We use dynamic mutability group because time interpolation
             // may induce rapid change:
@@ -459,7 +468,7 @@ T.ProgressBar {
             height: control.barHeight
             opacity: 0.4
             color: theme.fg.neutral //FIXME buffer color ?
-            radius: control.barHeight
+            radius: control.blockStyle ? VLCStyle.seekBar_radius : control.barHeight
 
             // TODO: Do not use `Binding` when minimum Qt is 6.12:
             Binding {
@@ -566,9 +575,37 @@ T.ProgressBar {
     }
 
     Rectangle {
+        id: blockHandle
+
+        visible: control.blockStyle
+
+        readonly property real _inset: VLCStyle.seekBar_inset
+
+        // the handle closes the progress fill, its right edge follows the position
+        x: Math.max(_inset, _inset + control.visualPosition * (control.availableWidth - 2 * _inset) - width)
+        y: _inset
+
+        width: VLCStyle.seekBar_handleWidth
+        height: control.barHeight - 2 * _inset
+        radius: VLCStyle.seekBar_handleRadius
+        color: theme.fg.primary
+
+        // TODO: Do not use `Binding` when minimum Qt is 6.12:
+        Binding {
+            target: blockHandle
+            property: "mutabilityGroup"
+            when: (blockHandle.mutabilityGroup !== undefined)
+            value: (Player.playingState === Player.PLAYING_STATE_PLAYING) ? Item.DynamicMutabilityGroup
+                                                                          : Item.StaticMutabilityGroup
+        }
+    }
+
+    Rectangle {
         id: sliderHandle
 
         property int _size: control.barHeight * 3
+
+        opacity: control.blockStyle ? 0.0 : 1.0
 
         x: (control.visualPosition * control.availableWidth) - width / 2
         y: (control.barHeight - height) / 2
