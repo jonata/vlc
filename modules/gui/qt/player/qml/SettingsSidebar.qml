@@ -64,6 +64,14 @@ FocusScope {
         player: Player
     }
 
+    SubtitleStyle {
+        id: subtitleStyle
+        player: Player
+    }
+
+    // outline thickness of each choice of the subtitle style
+    readonly property var _outlineThicknesses: [0, 2, 4, 6]
+
     Rectangle {
         anchors.fill: parent
 
@@ -207,6 +215,119 @@ FocusScope {
 
                     value: Player.subtitleFPS
                     onMoved: Player.subtitleFPS = value
+                }
+            }
+
+            SettingsSection {
+                Layout.fillWidth: true
+                title: qsTr("Style")
+
+                SettingsSlider {
+                    Layout.fillWidth: true
+
+                    label: qsTr("Size")
+                    valueText: qsTr("%1%").arg(subtitleStyle.textScale)
+
+                    from: 50
+                    to: 300
+                    stepSize: 5
+                    snapMode: T.Slider.SnapAlways
+
+                    value: subtitleStyle.textScale
+                    onMoved: subtitleStyle.textScale = value
+                }
+
+                T.Label {
+                    Layout.fillWidth: true
+
+                    text: qsTr("Color")
+                    color: theme.fg.primary
+                    font.pixelSize: VLCStyle.fontSize_normal
+                }
+
+                Row {
+                    spacing: VLCStyle.margin_small
+
+                    Repeater {
+                        model: ["#ffffff", "#ffff00", "#00ffff", "#00ff00", "#ff8000"]
+
+                        delegate: T.AbstractButton {
+                            id: swatch
+
+                            required property string modelData
+
+                            readonly property bool selected: Qt.colorEqual(subtitleStyle.textColor, modelData)
+
+                            implicitWidth: VLCStyle.icon_normal
+                            implicitHeight: VLCStyle.icon_normal
+
+                            Accessible.role: Accessible.RadioButton
+                            Accessible.name: modelData
+                            Accessible.checked: selected
+
+                            onClicked: subtitleStyle.textColor = modelData
+
+                            background: Rectangle {
+                                radius: width / 2
+                                color: swatch.modelData
+
+                                border.width: swatch.selected ? VLCStyle.dp(2, VLCStyle.scale) : 0
+                                border.color: theme.accent
+                            }
+                        }
+                    }
+                }
+
+                T.Label {
+                    Layout.fillWidth: true
+
+                    text: qsTr("Text outline")
+                    color: theme.fg.primary
+                    font.pixelSize: VLCStyle.fontSize_normal
+                }
+
+                SettingsOptionList {
+                    Layout.fillWidth: true
+
+                    choices: [qsTr("None"), qsTr("Thin"), qsTr("Normal"), qsTr("Thick")]
+                    currentIndex: root._outlineThicknesses.indexOf(subtitleStyle.outlineThickness)
+
+                    onSelected: (index) => { subtitleStyle.outlineThickness = root._outlineThicknesses[index] }
+                }
+
+                SettingsSlider {
+                    Layout.fillWidth: true
+
+                    label: qsTr("Background")
+                    valueText: qsTr("%1%").arg(Math.round(subtitleStyle.backgroundOpacity / 2.55))
+
+                    from: 0
+                    to: 255
+                    stepSize: 1
+                    snapMode: T.Slider.SnapAlways
+
+                    value: subtitleStyle.backgroundOpacity
+                    onMoved: subtitleStyle.backgroundOpacity = value
+                }
+
+                SettingsSlider {
+                    Layout.fillWidth: true
+
+                    label: qsTr("Position")
+                    valueText: qsTr("%1 px").arg(subtitleStyle.margin)
+
+                    from: 0
+                    to: 300
+                    stepSize: 5
+                    snapMode: T.Slider.SnapAlways
+
+                    value: subtitleStyle.margin
+                    onMoved: subtitleStyle.margin = value
+                }
+
+                ActionButton {
+                    text: qsTr("Reset")
+                    onClicked: subtitleStyle.reset()
                 }
             }
 
