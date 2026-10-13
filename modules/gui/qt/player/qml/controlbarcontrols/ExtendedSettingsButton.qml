@@ -32,5 +32,15 @@ Widgets.IconToolButton {
 
     AccessibleCompat.id: "extendedSettingsButton"
 
-    onClicked: DialogsProvider.extendedDialog()
+    // in the player, toggles the settings sidebar
+    readonly property bool _hasSettingsSidebar: (typeof rootPlayer !== 'undefined') && (rootPlayer !== null)
+
+    checked: _hasSettingsSidebar && rootPlayer.settingsSidebarVisible
+
+    onClicked: {
+        if (_hasSettingsSidebar)
+            rootPlayer.toggleSettingsSidebar()
+        else
+            DialogsProvider.extendedDialog()
+    }
 }

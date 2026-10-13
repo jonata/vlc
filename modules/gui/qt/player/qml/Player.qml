@@ -65,6 +65,15 @@ FocusScope {
     // the video is shown inside a rounded frame between the bars
     readonly property bool _framedVideo: MainCtx.hasEmbededVideo && _controlsUnderVideo
 
+    property bool settingsSidebarVisible: false
+
+    function toggleSettingsSidebar() {
+        settingsSidebarVisible = !settingsSidebarVisible
+    }
+
+    // keep the controls visible while the settings are open
+    onSettingsSidebarVisibleChanged: lockUnlockAutoHide(settingsSidebarVisible)
+
     // Settings
 
     Accessible.role: Accessible.Client
@@ -190,7 +199,9 @@ FocusScope {
             bottom: (MainCtx.hasEmbededVideo && rootPlayer._controlsUnderVideo) ? controlBar.top : parent.bottom
 
             leftMargin: rootPlayer._framedVideo ? VLCStyle.videoFrame_inset : 0
-            rightMargin: rootPlayer._framedVideo ? VLCStyle.videoFrame_inset : 0
+            // with the framed video, the settings sidebar takes space instead of covering the video
+            rightMargin: rootPlayer._framedVideo ? (VLCStyle.videoFrame_inset + (settingsSidebar.visible ? settingsSidebar.width : 0))
+                                                 : 0
         }
 
         sourceComponent: MainCtx.hasEmbededVideo ? videoComponent : audioComponent
@@ -956,6 +967,23 @@ FocusScope {
 
         border.width: VLCStyle.videoFrame_inset + _overflow
         border.color: windowTheme.bg.primary
+    }
+
+    SettingsSidebar {
+        id: settingsSidebar
+
+        anchors.right: parent.right
+        anchors.top: topBar.bottom
+        anchors.bottom: controlBar.top
+
+        width: implicitWidth
+
+        visible: rootPlayer.settingsSidebarVisible
+
+        // above the video frame, below the bars
+        z: 0.5
+
+        onCloseRequested: rootPlayer.settingsSidebarVisible = false
     }
 
     TopBar {
