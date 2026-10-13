@@ -894,6 +894,51 @@ libqt_plugin_la_RES = \
 	pixmaps/icons/ic_fluent_arrow_sync_24_regular.svg \
 	pixmaps/icons/regex.svg \
 	pixmaps/icons/ic_fluent_text_change_case_24_regular.svg \
+	pixmaps/icons/redesign/add.svg \
+	pixmaps/icons/redesign/arrow_left.svg \
+	pixmaps/icons/redesign/bookmark.svg \
+	pixmaps/icons/redesign/check.svg \
+	pixmaps/icons/redesign/chevron_down.svg \
+	pixmaps/icons/redesign/chevron_left.svg \
+	pixmaps/icons/redesign/chevron_right.svg \
+	pixmaps/icons/redesign/chevron_up.svg \
+	pixmaps/icons/redesign/close.svg \
+	pixmaps/icons/redesign/fullscreen.svg \
+	pixmaps/icons/redesign/grid.svg \
+	pixmaps/icons/redesign/home.svg \
+	pixmaps/icons/redesign/info.svg \
+	pixmaps/icons/redesign/list.svg \
+	pixmaps/icons/redesign/maximize.svg \
+	pixmaps/icons/redesign/minimize.svg \
+	pixmaps/icons/redesign/more.svg \
+	pixmaps/icons/redesign/music.svg \
+	pixmaps/icons/redesign/next.svg \
+	pixmaps/icons/redesign/open.svg \
+	pixmaps/icons/redesign/pause.svg \
+	pixmaps/icons/redesign/play.svg \
+	pixmaps/icons/redesign/playback_settings.svg \
+	pixmaps/icons/redesign/previous.svg \
+	pixmaps/icons/redesign/profile.svg \
+	pixmaps/icons/redesign/queue.svg \
+	pixmaps/icons/redesign/recent.svg \
+	pixmaps/icons/redesign/record.svg \
+	pixmaps/icons/redesign/remove.svg \
+	pixmaps/icons/redesign/repeat.svg \
+	pixmaps/icons/redesign/search.svg \
+	pixmaps/icons/redesign/settings.svg \
+	pixmaps/icons/redesign/shuffle.svg \
+	pixmaps/icons/redesign/sidebar_left.svg \
+	pixmaps/icons/redesign/snapshot.svg \
+	pixmaps/icons/redesign/sort.svg \
+	pixmaps/icons/redesign/stop.svg \
+	pixmaps/icons/redesign/streaming.svg \
+	pixmaps/icons/redesign/subtitles.svg \
+	pixmaps/icons/redesign/tv.svg \
+	pixmaps/icons/redesign/video.svg \
+	pixmaps/icons/redesign/volume_high.svg \
+	pixmaps/icons/redesign/volume_low.svg \
+	pixmaps/icons/redesign/volume_medium.svg \
+	pixmaps/icons/redesign/volume_none.svg \
 	pixmaps/menu/add.svg \
 	pixmaps/menu/capture-card.svg \
 	pixmaps/menu/clear.svg \
