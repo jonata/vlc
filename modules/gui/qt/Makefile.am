@@ -294,6 +294,8 @@ libqt_plugin_la_SOURCES = \
 	player/control_list_model.cpp player/control_list_model.hpp \
 	player/control_list_filter.cpp \
 	player/control_list_filter.hpp \
+	player/player_settings.cpp \
+	player/player_settings.hpp \
 	playlist/media.hpp \
 	playlist/playlist_common.hpp \
 	playlist/playlist_controller.cpp \
@@ -495,6 +497,7 @@ nodist_libqt_plugin_la_SOURCES = \
 	player/player_controlbar_model.moc.cpp \
 	player/control_list_model.moc.cpp \
 	player/control_list_filter.moc.cpp \
+	player/player_settings.moc.cpp \
 	playlist/playlist_controller.moc.cpp \
 	playlist/playlist_item.moc.cpp \
 	playlist/playlist_model.moc.cpp \
