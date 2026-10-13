@@ -70,6 +70,123 @@ FocusScope {
         player: Player
     }
 
+    // Show presets: the settings can be saved for the folder of the media,
+    // typically the episodes of a show, and are restored when a media of
+    // this folder is played.
+
+    PlayerPresets {
+        id: presets
+        ctx: MainCtx
+    }
+
+    // folder of the current media, local files only
+    readonly property string currentFolder: {
+        const url = Player.url.toString()
+        if (!url.startsWith("file://"))
+            return ""
+        const path = decodeURIComponent(url.substring(7))
+        return path.substring(0, path.lastIndexOf("/"))
+    }
+
+    readonly property string _currentFolderName: currentFolder.substring(currentFolder.lastIndexOf("/") + 1)
+    readonly property bool _hasPreset: presets.has(currentFolder) && presets.folders.length >= 0
+
+    // the preset was restored for the current media
+    property bool presetApplied: false
+
+    function collectSettings() {
+        return {
+            "subtitleDelay": Player.subtitleDelayMS,
+            "subtitleSpeed": Player.subtitleFPS,
+            "subtitleTrack": presets.checkedRow(Player.subtitleTracks),
+            "textScale": subtitleStyle.textScale,
+            "textColor": subtitleStyle.textColor.toString(),
+            "outlineThickness": subtitleStyle.outlineThickness,
+            "backgroundOpacity": subtitleStyle.backgroundOpacity,
+            "margin": subtitleStyle.margin,
+            "audioDelay": Player.audioDelayMS,
+            "audioTrack": presets.checkedRow(Player.audioTracks),
+            "equalizerEnabled": audioEqualizer.enabled,
+            "equalizerPreset": audioEqualizer.preset,
+            "equalizerPreamp": audioEqualizer.preamp,
+            "equalizerBands": audioEqualizer.bands,
+            "adjustEnabled": videoAdjust.enabled,
+            "contrast": videoAdjust.contrast,
+            "brightness": videoAdjust.brightness,
+            "hue": videoAdjust.hue,
+            "saturation": videoAdjust.saturation,
+            "gamma": videoAdjust.gamma,
+            "rate": Player.rate
+        }
+    }
+
+    function applySettings(values) {
+        Player.subtitleDelayMS = values.subtitleDelay ?? 0
+        Player.subtitleFPS = values.subtitleSpeed ?? 1
+        presets.checkRow(Player.subtitleTracks, values.subtitleTrack ?? -1)
+
+        subtitleStyle.textScale = values.textScale ?? subtitleStyle.textScale
+        subtitleStyle.textColor = values.textColor ?? subtitleStyle.textColor
+        subtitleStyle.outlineThickness = values.outlineThickness ?? subtitleStyle.outlineThickness
+        subtitleStyle.backgroundOpacity = values.backgroundOpacity ?? subtitleStyle.backgroundOpacity
+        subtitleStyle.margin = values.margin ?? subtitleStyle.margin
+
+        Player.audioDelayMS = values.audioDelay ?? 0
+        presets.checkRow(Player.audioTracks, values.audioTrack ?? -1)
+
+        // changing the values enables the filters, their state is restored afterwards
+        if ((values.equalizerPreset ?? -1) >= 0) {
+            audioEqualizer.applyPreset(values.equalizerPreset)
+        } else {
+            const bands = values.equalizerBands ?? []
+            for (let i = 0; i < bands.length; ++i)
+                audioEqualizer.setBand(i, bands[i])
+            audioEqualizer.preamp = values.equalizerPreamp ?? audioEqualizer.preamp
+        }
+        audioEqualizer.enabled = values.equalizerEnabled ?? false
+
+        videoAdjust.contrast = values.contrast ?? 1
+        videoAdjust.brightness = values.brightness ?? 1
+        videoAdjust.hue = values.hue ?? 0
+        videoAdjust.saturation = values.saturation ?? 1
+        videoAdjust.gamma = values.gamma ?? 1
+        videoAdjust.enabled = values.adjustEnabled ?? false
+
+        Player.rate = values.rate ?? 1
+    }
+
+    Connections {
+        target: Player
+
+        function onInputChanged(hasInput) {
+            root.presetApplied = false
+            if (hasInput)
+                presetTimer.restart()
+            else
+                presetTimer.stop()
+        }
+    }
+
+    // the sidebar may be created once the media has started
+    Component.onCompleted: {
+        if (Player.isStarted)
+            presetTimer.start()
+    }
+
+    // the tracks are known a moment after the media starts
+    Timer {
+        id: presetTimer
+
+        interval: 1500
+
+        onTriggered: {
+            if (!presets.has(root.currentFolder))
+                return
+            root.applySettings(presets.load(root.currentFolder))
+            root.presetApplied = true
+        }
+    }
+
     // outline thickness of each choice of the subtitle style
     readonly property var _outlineThicknesses: [0, 2, 4, 6]
 
@@ -178,6 +295,64 @@ FocusScope {
             color: theme.fg.primary
             font.pixelSize: VLCStyle.fontSize_large
             font.weight: Font.DemiBold
+        }
+
+        Rectangle {
+            Layout.fillWidth: true
+            implicitHeight: presetColumn.implicitHeight + 2 * VLCStyle.margin_small
+
+            visible: root.currentFolder !== ""
+
+            radius: VLCStyle.settingsSection_radius
+            color: theme.bg.primary
+
+            ColumnLayout {
+                id: presetColumn
+
+                x: VLCStyle.settingsSection_padding
+                y: VLCStyle.margin_small
+                width: parent.width - 2 * VLCStyle.settingsSection_padding
+
+                spacing: VLCStyle.margin_xsmall
+
+                T.Label {
+                    Layout.fillWidth: true
+
+                    text: root._hasPreset ? qsTr("Preset of \u201c%1\u201d").arg(root._currentFolderName)
+                                          : qsTr("No preset for \u201c%1\u201d").arg(root._currentFolderName)
+                    elide: Text.ElideMiddle
+                    color: theme.fg.primary
+                    font.pixelSize: VLCStyle.fontSize_normal
+                }
+
+                T.Label {
+                    Layout.fillWidth: true
+
+                    visible: root.presetApplied
+                    text: qsTr("Restored for this media")
+                    color: theme.accent
+                    font.pixelSize: VLCStyle.fontSize_small
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: VLCStyle.margin_xsmall
+
+                    ActionButton {
+                        text: root._hasPreset ? qsTr("Update") : qsTr("Save for this folder")
+                        onClicked: presets.save(root.currentFolder, root.collectSettings())
+                    }
+
+                    ActionButton {
+                        visible: root._hasPreset
+                        text: qsTr("Remove")
+                        onClicked: {
+                            presets.remove(root.currentFolder)
+                            root.presetApplied = false
+                        }
+                    }
+                }
+            }
         }
 
         Flickable {
