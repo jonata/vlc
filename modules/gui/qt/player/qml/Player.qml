@@ -935,22 +935,26 @@ FocusScope {
         }
     }
 
-    // Rounds the corners of the video and fills the margins around it. The
-    // border overlaps the bars by its own width so only the inner edge shows.
+    // Rounds the corners of the video and fills the side margins around it.
+    // The rectangle extends under the bars and past the window edges, so that
+    // only its rounded inner edge is visible.
     Rectangle {
         id: videoFrame
 
         visible: rootPlayer._framedVideo
 
-        x: 0
+        // inner edge: on the video sides, `videoFrame_inset` from the window sides
+        readonly property real _overflow: VLCStyle.videoFrame_radius
+
+        x: playerSpecializationLoader.x - border.width
         y: playerSpecializationLoader.y - border.width
-        width: rootPlayer.width
+        width: playerSpecializationLoader.width + 2 * border.width
         height: playerSpecializationLoader.height + 2 * border.width
 
         color: "transparent"
-        radius: VLCStyle.videoFrame_radius
+        radius: border.width + VLCStyle.videoFrame_radius
 
-        border.width: VLCStyle.videoFrame_inset
+        border.width: VLCStyle.videoFrame_inset + _overflow
         border.color: windowTheme.bg.primary
     }
 

@@ -349,7 +349,7 @@ QtObject {
     readonly property int playerTopBar_height: MainCtx.dp(40, scale)
     readonly property int playerTopBar_separatorHeight: MainCtx.dp(20, scale)
     readonly property int videoFrame_inset: MainCtx.dp(10, scale)
-    readonly property int videoFrame_radius: MainCtx.dp(19, scale)
+    readonly property int videoFrame_radius: MainCtx.dp(9, scale)
 
     // Volume wedge
     readonly property int volumeWedge_width: MainCtx.dp(88, scale)
