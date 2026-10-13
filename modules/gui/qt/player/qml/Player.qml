@@ -979,7 +979,8 @@ FocusScope {
                   resumeVisible)
 
         focus: true
-        title: Player.title
+        // media without a title fall back to the name shown in the window title
+        title: (Player.title !== "") ? Player.title : Player.name
 
         pinControls: MainCtx.pinVideoControls
 

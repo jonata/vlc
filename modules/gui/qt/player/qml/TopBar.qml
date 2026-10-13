@@ -24,6 +24,7 @@ import QtQuick.Window
 
 import VLC.MainInterface
 import VLC.Style
+import VLC.Player
 import VLC.PlayerControls
 import VLC.Playlist
 import VLC.Widgets as Widgets
@@ -61,7 +62,32 @@ FocusScope{
 
     property bool _showTopBar: (pinControls === false || showToolbar === false)
 
-    property bool _showCenterText: (pinControls && showToolbar === false && showCSD)
+    property bool _showCenterText: (pinControls && showToolbar === false)
+
+    // single line layout: logo, menu and breadcrumb on the left, centered title
+    readonly property bool _compact: _showCenterText
+
+    readonly property string _sectionName: {
+        switch (History.viewPath[1]) {
+        case "home": return qsTr("Home")
+        case "video": return qsTr("Video")
+        case "music": return qsTr("Music")
+        case "network": return qsTr("Browse")
+        case "discover": return qsTr("Discover")
+        default: return qsTr("Library")
+        }
+    }
+
+    readonly property string _sectionIcon: {
+        switch (History.viewPath[1]) {
+        case "home": return VLCIcons.home
+        case "video": return VLCIcons.topbar_video
+        case "music": return VLCIcons.topbar_music
+        case "network": return VLCIcons.topbar_network
+        case "discover": return VLCIcons.topbar_discover
+        default: return VLCIcons.back
+        }
+    }
 
     readonly property int _sideMargin: VLCStyle.margin_small + sideMargin
 
@@ -269,14 +295,19 @@ FocusScope{
 
             visible: (root._showTopBar && root.resumeVisible === false)
 
-            implicitHeight: VLCStyle.icon_banner + VLCStyle.margin_xxsmall * 2
-            implicitWidth: backBtn.implicitWidth + logo.implicitWidth + VLCStyle.margin_xxsmall
+            implicitHeight: root._compact ? VLCStyle.playerTopBar_height
+                                          : VLCStyle.icon_banner + VLCStyle.margin_xxsmall * 2
+            implicitWidth: root._compact ? (breadcrumb.x + breadcrumb.implicitWidth)
+                                         : (backBtn.implicitWidth + logo.implicitWidth + VLCStyle.margin_xxsmall)
 
             Widgets.IconToolButton {
                 id: backBtn
 
                 anchors.verticalCenter: parent.verticalCenter
                 anchors.left: parent.left
+
+                visible: !root._compact
+                enabled: visible
 
                 objectName: "IconToolButton"
                 font.pixelSize: VLCStyle.icon_banner
@@ -298,10 +329,95 @@ FocusScope{
                 id: logo
 
                 anchors.verticalCenter: parent.verticalCenter
-                anchors.left: backBtn.right
-                anchors.leftMargin: VLCStyle.margin_xxsmall
+                anchors.left: root._compact ? parent.left : backBtn.right
+                anchors.leftMargin: root._compact ? VLCStyle.margin_xsmall : VLCStyle.margin_xxsmall
 
                 color: theme.accent
+            }
+
+            Widgets.IconToolButton {
+                id: compactMenuBtn
+
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.left: logo.right
+                anchors.leftMargin: VLCStyle.margin_xsmall
+
+                visible: root._compact
+                enabled: visible
+
+                font.pixelSize: VLCStyle.icon_normal
+                text: VLCIcons.more
+                description: qsTr("Menu")
+
+                AccessibleCompat.id: "topBarCompactMenuButton"
+
+                checked: compactContextMenu.shown
+
+                Navigation.parentItem: root
+                Navigation.rightItem: breadcrumb
+
+                onClicked: compactContextMenu.popup(this.mapToGlobal(0, height))
+
+                onHoveredChanged: root.requestLockUnlockAutoHide(hovered)
+
+                Menus.QmlGlobalMenu {
+                    id: compactContextMenu
+
+                    ctx: MainCtx
+
+                    onAboutToShow: root.requestLockUnlockAutoHide(true)
+                    onAboutToHide: root.requestLockUnlockAutoHide(false)
+                }
+
+                Connections {
+                    target: root
+
+                    function onForceUnlock() {
+                        compactContextMenu.close()
+                    }
+                }
+            }
+
+            Rectangle {
+                id: compactSeparator
+
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.left: compactMenuBtn.right
+                anchors.leftMargin: VLCStyle.margin_xsmall
+
+                visible: root._compact
+
+                width: VLCStyle.border
+                height: VLCStyle.playerTopBar_separatorHeight
+
+                color: theme.separator
+            }
+
+            // takes back to the library section the player was opened from
+            Widgets.ButtonExt {
+                id: breadcrumb
+
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.left: compactSeparator.right
+                anchors.leftMargin: VLCStyle.margin_xsmall
+
+                visible: root._compact
+                enabled: visible
+
+                iconTxt: root._sectionIcon
+                text: root._sectionName
+
+                Accessible.name: qsTr("Back to %1").arg(root._sectionName)
+
+                AccessibleCompat.id: "topBarBreadcrumbButton"
+
+                Navigation.parentItem: root
+                Navigation.leftItem: compactMenuBtn
+                Navigation.rightItem: playlistGroup
+
+                onClicked: root.backRequested()
+
+                onHoveredChanged: root.requestLockUnlockAutoHide(hovered)
             }
         }
 
@@ -354,8 +470,7 @@ FocusScope{
 
         text: root.title
         color: theme.fg.primary
-        font.pixelSize: VLCStyle.dp(13, VLCStyle.scale)
-        font.weight: Font.DemiBold
+        font.pixelSize: VLCStyle.fontSize_normal
         elide: Text.ElideRight
         verticalAlignment: Text.AlignVCenter
 
@@ -435,10 +550,32 @@ FocusScope{
         visible: root._showTopBar
 
         Widgets.IconToolButton {
+            id: compactFullscreenBtn
+
+            anchors.verticalCenter: parent.verticalCenter
+
+            visible: root._compact && Player.hasVideoOutput
+            enabled: visible
+
+            font.pixelSize: VLCStyle.icon_normal
+            text: Player.fullscreen ? VLCIcons.defullscreen : VLCIcons.fullscreen
+            description: qsTr("Fullscreen")
+
+            AccessibleCompat.id: "topBarFullscreenButton"
+
+            Navigation.parentItem: root
+            Navigation.leftItem: breadcrumb
+
+            onClicked: Player.fullscreen = !Player.fullscreen
+
+            onHoveredChanged: root.requestLockUnlockAutoHide(hovered)
+        }
+
+        Widgets.IconToolButton {
             id: menuSelector
 
             anchors.verticalCenter: parent.verticalCenter
-            visible: !root.showToolbar
+            visible: !root.showToolbar && !root._compact
             enabled: visible
             focus: visible
             font.pixelSize: VLCStyle.icon_banner
@@ -489,6 +626,10 @@ FocusScope{
             description: qsTr("Play Queue")
 
             AccessibleCompat.id: "topBarPlayqueueButton"
+
+            // the play queue button is part of the control bar in the compact layout
+            visible: !root._compact
+            enabled: visible
 
             focus: root.showToolbar
 
