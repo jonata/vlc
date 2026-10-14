@@ -105,6 +105,13 @@ T.Pane {
         colorSet: ColorContext.Window
     }
 
+    SeekThumbnailer {
+        id: seekThumbnailer
+
+        ctx: MainCtx
+        url: (root._inline && Player.hasVideoOutput && Player.isStarted) ? Player.url : ""
+    }
+
     AudioWaveform {
         id: audioWaveform
 
@@ -255,6 +262,8 @@ T.Pane {
 
                 // the audio player shows the waveform of local files
                 waveformPeaks: audioWaveform.peaks
+
+                seekThumbnailer: root._inline ? seekThumbnailer : null
 
                 // the slider is reparented between rows, so the palette can not
                 // be reliably inherited from its parent

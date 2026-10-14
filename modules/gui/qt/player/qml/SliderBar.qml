@@ -34,6 +34,17 @@ T.ProgressBar {
     // peaks of the audio, from 0 to 1, drawn as bars instead of the progress
     // fill in the block style
     property var waveformPeaks: []
+
+    // generates the thumbnails shown while hovering, if any
+    property SeekThumbnailer seekThumbnailer: null
+
+    readonly property real _hoverPosition: hoverHandler.hovered ? Helpers.clamp(hoverHandler.point.position.x / control.width, 0., 1.)
+                                                                : -1.
+
+    on_HoverPositionChanged: {
+        if (seekThumbnailer && _hoverPosition >= 0.)
+            seekThumbnailer.request(_hoverPosition)
+    }
     readonly property bool _hasWaveform: blockStyle && (waveformPeaks?.length ?? 0) > 0
 
     readonly property real _hoveredScalingFactor: blockStyle ? 1.0 : 1.8
@@ -681,6 +692,41 @@ T.ProgressBar {
                     duration: VLCStyle.duration_veryLong
                 }
             }
+        }
+    }
+
+    // thumbnail of the hovered position, above the time tool tip
+    Rectangle {
+        id: thumbnailPreview
+
+        readonly property real _hoverX: Math.max(0, control._hoverPosition) * control.width
+
+        visible: !!control.seekThumbnailer && hoverHandler.hovered
+                 && thumbnailImage.status === Image.Ready
+
+        width: thumbnailImage.paintedWidth + 2 * border.width
+        height: thumbnailImage.paintedHeight + 2 * border.width
+
+        x: Helpers.clamp(_hoverX - width / 2, 0, control.width - width)
+        y: -height - VLCStyle.dp(40, VLCStyle.scale)
+
+        radius: VLCStyle.settingsSection_radius
+        color: control.backgroundColor
+        border.width: VLCStyle.dp(2, VLCStyle.scale)
+        border.color: control.backgroundColor
+
+        Image {
+            id: thumbnailImage
+
+            anchors.centerIn: parent
+
+            width: VLCStyle.dp(200, VLCStyle.scale)
+            height: VLCStyle.dp(150, VLCStyle.scale)
+
+            source: control.seekThumbnailer?.thumbnail ?? ""
+            fillMode: Image.PreserveAspectFit
+            asynchronous: true
+            cache: false
         }
     }
 
