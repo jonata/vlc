@@ -904,6 +904,19 @@ FocusScope {
 
             SettingsSection {
                 Layout.fillWidth: true
+                title: qsTr("Audio visualizer")
+                expanded: false
+
+                // the visualizations are those of the audio output
+                SettingsOptionList {
+                    Layout.fillWidth: true
+                    model: Player.audioVisualization
+                    emptyText: qsTr("Available during audio playback")
+                }
+            }
+
+            SettingsSection {
+                Layout.fillWidth: true
                 title: qsTr("Display")
 
                 SettingsToggle {
