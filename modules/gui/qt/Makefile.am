@@ -1186,6 +1186,7 @@ libqml_module_medialibrary_a_QML = \
 	medialibrary/qml/MusicAlbumSectionDelegate.qml \
 	medialibrary/qml/MLGlobalShortcuts.qml \
 	medialibrary/qml/Bookmarks.qml \
+	medialibrary/qml/BookmarkList.qml \
 	medialibrary/qml/MLContextMenu.qml \
 	medialibrary/qml/MLDragItem.qml \
 	medialibrary/qml/MLTableColumns.qml \
@@ -1259,6 +1260,7 @@ libqml_module_player_a_QML = \
 	player/qml/StatisticsOverlay.qml \
 	player/qml/SubtitleTimeline.qml \
 	player/qml/SubtitleDialog.qml \
+	player/qml/QueuePanelPages.qml \
 	player/qml/SettingsOptionList.qml \
 	player/qml/SettingsSection.qml \
 	player/qml/SettingsSidebar.qml \

@@ -1253,14 +1253,34 @@ FocusScope {
             wheelEnabled: true
 
             rightPadding: VLCStyle.applicationHorizontalMargin
-            topPadding:  {
+            readonly property real _tabsY: {
                 if (rootPlayer._controlsUnderVideo)
                     return VLCStyle.margin_normal
                 else
                     // NOTE: We increase the padding accordingly to avoid overlapping the TopBar.
                     return topBar.reservedHeight
             }
+            // the tabs of the panel are above the queue
+            topPadding: _tabsY + queuePages.tabBarHeight + VLCStyle.margin_small
             bottomPadding: 0
+
+            QueuePanelPages {
+                id: queuePages
+
+                parent: playlistView
+
+                x: playlistView.leftPadding
+                y: playlistView._tabsY
+                width: playlistView.availableWidth
+                height: playlistView.height - y - playlistView.bottomPadding
+            }
+
+            // the queue is only shown in its tab
+            Binding {
+                target: playlistView.contentItem
+                property: "visible"
+                value: queuePages.currentTab === QueuePanelPages.Tab.Queue
+            }
 
             background: Rectangle {
                 color: windowTheme.bg.primary.alpha(0.8)

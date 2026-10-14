@@ -414,13 +414,14 @@ RecentMenu::RecentMenu(MLRecentMediaModel* model, MediaLib* ml,  QWidget* parent
 BookmarkMenu::BookmarkMenu(MediaLib * mediaLib, vlc_player_t * player, QWidget * parent)
     : QMenu(parent)
 {
-    addAction(qtr("&Manage"), THEDP, &DialogsProvider::bookmarksDialog )->setShortcut(QKeySequence("Ctrl+B"));
-
-    addSeparator();
-
     MLBookmarkModel * model = new MLBookmarkModel(this);
     model->setPlayer(player);
     model->setMl(mediaLib);
+
+    addAction(qtr("&Add Bookmark"), model, &MLBookmarkModel::add )->setShortcut(QKeySequence("Ctrl+B"));
+    addAction(qtr("&Manage"), THEDP, &DialogsProvider::bookmarksDialog );
+
+    addSeparator();
 
     ListMenuHelper * helper = new ListMenuHelper(this, model, nullptr, this);
 

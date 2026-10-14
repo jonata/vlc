@@ -20,9 +20,22 @@ import QtQuick
 import VLC.MediaLibrary
 import VLC.Dialogs
 import VLC.Menus
+import VLC.Player
 
 Item {
-    ShortcutExt{ sequence:"Ctrl+B"; onActivated: DialogsProvider.bookmarksDialog() }
+    // bookmarks the current time
+    ShortcutExt {
+        sequence: "Ctrl+B"
+        enabled: Player.isStarted
+        onActivated: bookmarkModel.add()
+    }
+
+    MLBookmarkModel {
+        id: bookmarkModel
+
+        player: Player
+        ml: MediaLib
+    }
 
     MLRecentMediaModel {
         id: recentModel
