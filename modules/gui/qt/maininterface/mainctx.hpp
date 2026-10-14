@@ -134,6 +134,7 @@ class MainCtx : public QObject
     Q_PROPERTY(bool lyricsMode READ lyricsMode WRITE setLyricsMode NOTIFY lyricsModeChanged FINAL)
     Q_PROPERTY(bool seekThumbnails READ seekThumbnails WRITE setSeekThumbnails NOTIFY seekThumbnailsChanged FINAL)
     Q_PROPERTY(bool seekWaveform READ seekWaveform WRITE setSeekWaveform NOTIFY seekWaveformChanged FINAL)
+    Q_PROPERTY(bool playbackStatistics READ playbackStatistics WRITE setPlaybackStatistics NOTIFY playbackStatisticsChanged FINAL)
     Q_PROPERTY(bool usingTouch READ usingTouch NOTIFY usingTouchChanged FINAL)
     Q_PROPERTY(CSDButtonModel *csdButtonModel READ csdButtonModel CONSTANT FINAL)
     Q_PROPERTY(MainInterfaceModes mainInterfaceModes READ getMainInterfaceModes NOTIFY mainInterfaceModesChanged FINAL)
@@ -243,6 +244,7 @@ public:
     inline bool lyricsMode() const { return m_lyricsMode; }
     inline bool seekThumbnails() const { return m_seekThumbnails; }
     inline bool seekWaveform() const { return m_seekWaveform; }
+    inline bool playbackStatistics() const { return m_playbackStatistics; }
     inline ColorSchemeModel* getColorScheme() const { return m_colorScheme; }
     bool hasVLM() const;
     bool useClientSideDecoration() const;
@@ -496,6 +498,7 @@ protected:
     bool m_lyricsMode = true;
     bool m_seekThumbnails = true;
     bool m_seekWaveform = true;
+    bool m_playbackStatistics = false;
 
     bool m_usingTouch = false;
 
@@ -530,6 +533,7 @@ public slots:
     void setLyricsMode( bool );
     void setSeekThumbnails( bool );
     void setSeekWaveform( bool );
+    void setPlaybackStatistics( bool );
     void incrementIntfUserScaleFactor( bool increment);
     void setIntfUserScaleFactor( double );
     void setHasToolbarMenu( bool );
@@ -583,6 +587,7 @@ signals:
     void lyricsModeChanged( bool );
     void seekThumbnailsChanged( bool );
     void seekWaveformChanged( bool );
+    void playbackStatisticsChanged( bool );
     void colorSchemeChanged( QString );
     void useClientSideDecorationChanged();
     void hasToolbarMenuChanged();

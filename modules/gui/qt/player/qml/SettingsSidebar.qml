@@ -917,6 +917,12 @@ FocusScope {
                     checked: MainCtx.seekWaveform
                     onToggled: (checked) => { MainCtx.seekWaveform = checked }
                 }
+
+                SettingsToggle {
+                    text: qsTr("Show statistics")
+                    checked: MainCtx.playbackStatistics
+                    onToggled: (checked) => { MainCtx.playbackStatistics = checked }
+                }
             }
 
             SettingsSection {

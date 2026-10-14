@@ -302,6 +302,8 @@ libqt_plugin_la_SOURCES = \
 	player/folder_media_model.hpp \
 	player/seek_thumbnailer.cpp \
 	player/seek_thumbnailer.hpp \
+	player/playback_statistics.cpp \
+	player/playback_statistics.hpp \
 	playlist/media.hpp \
 	playlist/playlist_common.hpp \
 	playlist/playlist_controller.cpp \
@@ -507,6 +509,7 @@ nodist_libqt_plugin_la_SOURCES = \
 	player/audio_waveform.moc.cpp \
 	player/folder_media_model.moc.cpp \
 	player/seek_thumbnailer.moc.cpp \
+	player/playback_statistics.moc.cpp \
 	playlist/playlist_controller.moc.cpp \
 	playlist/playlist_item.moc.cpp \
 	playlist/playlist_model.moc.cpp \
@@ -1247,6 +1250,7 @@ libqml_module_player_a_QML = \
 	player/qml/TracksPageSpeed.qml \
 	player/qml/TracksPageSubtitle.qml \
 	player/qml/CompactLibrary.qml \
+	player/qml/StatisticsOverlay.qml \
 	player/qml/SettingsOptionList.qml \
 	player/qml/SettingsSection.qml \
 	player/qml/SettingsSidebar.qml \

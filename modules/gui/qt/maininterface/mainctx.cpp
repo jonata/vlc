@@ -340,6 +340,7 @@ MainCtx::~MainCtx()
         settings->setValue( "lyrics-mode", m_lyricsMode );
         settings->setValue( "seek-thumbnails", m_seekThumbnails );
         settings->setValue( "seek-waveform", m_seekWaveform );
+        settings->setValue( "playback-statistics", m_playbackStatistics );
 
         /* Save the stackCentralW sizes */
         settings->endGroup();
@@ -498,6 +499,7 @@ void MainCtx::loadFromSettingsImpl(const bool callSignals)
 
     loadFromSettings(m_seekThumbnails, "MainWindow/seek-thumbnails", true, this, &MainCtx::seekThumbnailsChanged);
     loadFromSettings(m_seekWaveform, "MainWindow/seek-waveform", true, this, &MainCtx::seekWaveformChanged);
+    loadFromSettings(m_playbackStatistics, "MainWindow/playback-statistics", false, this, &MainCtx::playbackStatisticsChanged);
 
     const auto colorSchemeIndex = getSettings()->value( "MainWindow/color-scheme-index", 0 ).toInt();
     m_colorScheme->setCurrentIndex(colorSchemeIndex);
@@ -776,6 +778,15 @@ void MainCtx::setSeekWaveform(bool enabled)
 
     m_seekWaveform = enabled;
     emit seekWaveformChanged(enabled);
+}
+
+void MainCtx::setPlaybackStatistics(bool enabled)
+{
+    if (m_playbackStatistics == enabled)
+        return;
+
+    m_playbackStatistics = enabled;
+    emit playbackStatisticsChanged(enabled);
 }
 
 void MainCtx::setInterfaceAlwaysOnTop( bool on_top )

@@ -974,6 +974,18 @@ FocusScope {
         border.color: windowTheme.bg.primary
     }
 
+    StatisticsOverlay {
+        anchors.left: playerSpecializationLoader.left
+        anchors.top: playerSpecializationLoader.top
+        anchors.leftMargin: VLCStyle.margin_normal
+        anchors.topMargin: playerSpecializationLoader.topPadding + VLCStyle.margin_normal
+
+        width: implicitWidth
+        height: implicitHeight
+
+        visible: MainCtx.playbackStatistics && Player.isStarted
+    }
+
     CompactLibrary {
         id: compactLibrary
 
