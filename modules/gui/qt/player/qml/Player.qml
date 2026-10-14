@@ -974,6 +974,31 @@ FocusScope {
         border.color: windowTheme.bg.primary
     }
 
+    // near the playback controls, where it is noticed
+    ResumeDialog {
+        anchors.horizontalCenter: playerSpecializationLoader.horizontalCenter
+        anchors.bottom: controlBar.top
+        anchors.bottomMargin: VLCStyle.margin_normal
+
+        width: implicitWidth
+        height: implicitHeight
+
+        // above the video frame and the side panels
+        z: 1
+
+        colorContext.palette: VLCStyle.darkPalette
+
+        Navigation.parentItem: rootPlayer
+        Navigation.downItem: controlBar
+
+        onHidden: {
+            if (activeFocus)
+                controlBar.forceActiveFocus()
+        }
+
+        onVisibleChanged: rootPlayer.lockUnlockAutoHide(visible)
+    }
+
     StatisticsOverlay {
         anchors.left: playerSpecializationLoader.left
         anchors.top: playerSpecializationLoader.top

@@ -96,7 +96,6 @@ FocusScope{
 
     // Aliases
 
-    property alias resumeVisible: resumeDialog.visible
 
     property alias playlistVisible: playlistButton.checked
 
@@ -170,14 +169,14 @@ FocusScope{
             //place everything on one line
             //csdDecorations.implicitHeight gets overwritten when the height is set,
             //VLCStyle.icon_normal is its initial value
-            const lineHeight = Math.max(logoOrResume.implicitHeight, playlistGroup.implicitHeight, VLCStyle.icon_normal)
+            const lineHeight = Math.max(logoArea.implicitHeight, playlistGroup.implicitHeight, VLCStyle.icon_normal)
 
             centerTitleText.y = 0
             centerTitleText.height = lineHeight
 
             csdDecorations.height  = lineHeight
 
-            logoOrResume.height =  lineHeight
+            logoArea.height =  lineHeight
 
             playlistGroup.height = lineHeight
             playlistGroup.anchors.topMargin = 0
@@ -201,7 +200,7 @@ FocusScope{
             if (showCSD) {
                 right = csdDecorations
                 if (!left) {
-                    left = logoOrResume
+                    left = logoArea
                     logoPlaced = true
                 }
             }
@@ -215,7 +214,7 @@ FocusScope{
             }
 
             if (!logoPlaced) {
-                left = logoOrResume
+                left = logoArea
             } else {
                 left = undefined
             }
@@ -270,28 +269,15 @@ FocusScope{
     }
 
     Item {
-        id: logoOrResume
+        id: logoArea
 
         anchors.left: root.left
         anchors.top: root.top
         anchors.leftMargin:  root._sideMargin
 
-        implicitWidth: resumeVisible ? resumeDialog.implicitWidth
-                                     : logoGroup.implicitWidth
+        implicitWidth: logoGroup.implicitWidth
 
-        implicitHeight: {
-            if (root.resumeVisible) {
-                // Only if there are multiple lines use `resumeDialog`'s implicit height, otherwise the video
-                // window may get resized by few pixels unnecessarily when `resumeDialog` is no longer visible.
-                if (resumeDialog.implicitHeight >= (logoGroup.implicitHeight + resumeDialog.baselineOffset))
-                    return resumeDialog.implicitHeight
-                else
-                    return logoGroup.implicitHeight
-            } else if (_showTopBar)
-                return logoGroup.implicitHeight
-            else
-                return 0
-        }
+        implicitHeight: _showTopBar ? logoGroup.implicitHeight : 0
 
         onImplicitHeightChanged: root._layout()
 
@@ -300,7 +286,7 @@ FocusScope{
 
             anchors.fill: parent
 
-            visible: (root._showTopBar && root.resumeVisible === false)
+            visible: root._showTopBar
 
             implicitHeight: root._compact ? VLCStyle.playerTopBar_height
                                           : VLCStyle.icon_banner + VLCStyle.margin_xxsmall * 2
@@ -454,46 +440,20 @@ FocusScope{
                 onHoveredChanged: root.requestLockUnlockAutoHide(hovered)
             }
         }
-
-        ResumeDialog {
-            id: resumeDialog
-
-            anchors.fill: parent
-            //add aditional margin so it align with menubar text when visible (see MenuBar.qml)
-            anchors.leftMargin: VLCStyle.margin_xsmall
-
-            maxWidth: ((root.showCSD && !root.pinControls) ? csdDecorations : playlistGroup).x
-                - VLCStyle.applicationHorizontalMargin
-                - VLCStyle.margin_large
-
-            colorContext.palette: theme.palette
-
-            Navigation.parentItem: rootPlayer
-
-            onHidden: {
-                if (activeFocus) {
-                    backBtn.forceActiveFocus()
-                }
-            }
-
-            onVisibleChanged: {
-                root.requestLockUnlockAutoHide(visible)
-            }
-        }
     }
 
     //FIXME use the the right class
     T.Label {
         id: centerTitleText
 
-        readonly property int _leftLimit: logoOrResume.x + logoOrResume.width
+        readonly property int _leftLimit: logoArea.x + logoArea.width
         readonly property int _rightLimit: playlistGroup.x
         readonly property int _availableWidth: _rightLimit - _leftLimit
         readonly property int _centerX: ((root.width - centerTitleText.implicitWidth) / 2)
         readonly property bool _alignHCenter: _centerX > _leftLimit
                                               && _centerX + centerTitleText.implicitWidth < _rightLimit
 
-        visible: (_showCenterText && root.resumeVisible === false)
+        visible: _showCenterText
 
         enabled: visible
 
@@ -527,7 +487,7 @@ FocusScope{
         id: leftTitleText
 
         anchors.left: parent.left
-        anchors.top: logoOrResume.bottom
+        anchors.top: logoArea.bottom
         anchors.leftMargin: root._sideMargin
 
         width: root.textWidth - VLCStyle.margin_normal
