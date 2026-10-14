@@ -243,35 +243,64 @@ void MLBookmarkModel::sort( int column, Qt::SortOrder order )
 void MLBookmarkModel::add()
 {
     vlc_tick_t currentTime;
+    QString mrl;
     {
         vlc_player_locker lock{ m_player };
         currentTime = vlc_player_GetTime( m_player );
+        if ( input_item_t* media = vlc_player_GetCurrentMedia( m_player ) )
+        {
+            char* uri = input_item_GetURI( media );
+            mrl = qfu( uri );
+            free( uri );
+        }
     }
 
-    if (m_currentMediaId == 0)
+    if (m_currentMediaId == 0 && mrl.isEmpty())
         return;
 
-    m_mediaLib->runOnMLThread(this,
+    struct Ctx {
+        uint64_t mediaId = 0;
+    };
+    m_mediaLib->runOnMLThread<Ctx>(this,
     //ML thread
-    [mediaId = m_currentMediaId, currentTime, count = rowCount()](vlc_medialibrary_t* ml)
+    [mediaId = m_currentMediaId, mrl, currentTime](vlc_medialibrary_t* ml, Ctx& ctx)
     {
         int64_t time = MS_FROM_VLC_TICK(currentTime);
 
-        vlc_ml_media_add_bookmark(ml, mediaId, time);
+        // a media played from outside of the library is not known yet
+        ctx.mediaId = mediaId;
+        if (ctx.mediaId == 0)
+        {
+            ml_unique_ptr<vlc_ml_media_t> media { vlc_ml_get_media_by_mrl( ml, qtu(mrl) ) };
+            if (!media)
+                media.reset( vlc_ml_new_external_media( ml, qtu(mrl) ) );
+            if (!media)
+                return;
+            ctx.mediaId = media->i_id;
+        }
 
-        ml_unique_ptr<vlc_ml_media_t> media { vlc_ml_get_media(ml, mediaId) };
+        vlc_ml_media_add_bookmark(ml, ctx.mediaId, time);
+
+        ml_unique_ptr<vlc_ml_media_t> media { vlc_ml_get_media(ml, ctx.mediaId) };
 
         if (media)
         {
             QString name = qtr("Bookmark at %1").arg(VLCDuration::fromMS( time ).formatHMS());
 
-            vlc_ml_media_update_bookmark(ml, mediaId, time, qtu(name), nullptr);
+            vlc_ml_media_update_bookmark(ml, ctx.mediaId, time, qtu(name), nullptr);
         }
     },
     //UI thread
-    [this](){
+    [this](quint64, Ctx& ctx){
+        if (m_currentMediaId == 0)
+            m_currentMediaId = ctx.mediaId;
         refresh( MLBOOKMARKMODEL_REFRESH );
     });
+}
+
+void MLBookmarkModel::removeAt( int row )
+{
+    remove( { index( row, 0 ) } );
 }
 
 void MLBookmarkModel::remove( const QModelIndexList &indexes )
@@ -419,10 +448,10 @@ void MLBookmarkModel::updateMediaId(uint64_t revision, const QString &mediaUri)
         }
         if (valid)
         {
+            // the bookmarks were listed with the media id
             beginResetModel();
             m_bookmarks = std::move(ctx.newBookmarks);
             m_currentMediaId = ctx.newMLid;
-            refresh(MLBOOKMARKMODEL_REFRESH);
             endResetModel();
         }
     });

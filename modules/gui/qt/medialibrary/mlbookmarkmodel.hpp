@@ -78,8 +78,9 @@ public:
     MediaLib* ml() const;
     void setMl(MediaLib* ml);
 
-    void add();
+    Q_INVOKABLE void add();
     void remove( const QModelIndexList& indexes );
+    Q_INVOKABLE void removeAt( int row );
     void clear();
     Q_INVOKABLE void select( const QModelIndex& index );
 
