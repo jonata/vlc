@@ -42,6 +42,7 @@ FocusScope {
     property int currentTab: SettingsSidebar.Tab.Subtitles
 
     signal closeRequested()
+    signal addSubtitlesRequested()
 
     implicitWidth: VLCStyle.settingsSidebar_width
 
@@ -553,7 +554,7 @@ FocusScope {
 
             ActionButton {
                 text: qsTr("Add subtitle file...")
-                onClicked: DialogsProvider.loadSubtitlesFile()
+                onClicked: root.addSubtitlesRequested()
             }
         }
     }

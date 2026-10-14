@@ -34,6 +34,7 @@
 #include "player/seek_thumbnailer.hpp"
 #include "player/playback_statistics.hpp"
 #include "player/subtitle_cues.hpp"
+#include "player/subtitle_matcher.hpp"
 #include "player/delay_estimator.hpp"
 
 #include "dialogs/toolbar/controlbar_profile_model.hpp"
@@ -331,6 +332,8 @@ void MainUI::registerQMLTypes()
         qmlRegisterType<SeekThumbnailer>(uri, versionMajor, versionMinor, "SeekThumbnailer");
         qmlRegisterType<PlaybackStatistics>(uri, versionMajor, versionMinor, "PlaybackStatistics");
         qmlRegisterType<SubtitleCues>(uri, versionMajor, versionMinor, "SubtitleCues");
+        qmlRegisterType<SubtitleMatcher>(uri, versionMajor, versionMinor, "SubtitleMatcher");
+        qmlRegisterType<SubtitleLoader>(uri, versionMajor, versionMinor, "SubtitleLoader");
         // the enums are declared by VLCTick itself, VLCTickForeign has none
         qmlRegisterUncreatableMetaObject(VLCTick::staticMetaObject, uri, versionMajor, versionMinor, "VLCTick", "Not Instantiable" );
         qmlRegisterTypesAndRevisions<VLCDuration>(uri, versionMajor);

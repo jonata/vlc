@@ -67,6 +67,7 @@ FocusScope {
 
     property bool settingsSidebarVisible: false
     property bool compactLibraryVisible: false
+    property bool subtitleDialogVisible: false
 
     function toggleSettingsSidebar() {
         settingsSidebarVisible = !settingsSidebarVisible
@@ -974,6 +975,24 @@ FocusScope {
         border.color: windowTheme.bg.primary
     }
 
+    SubtitleDialog {
+        anchors.fill: parent
+
+        visible: rootPlayer.subtitleDialogVisible
+        enabled: visible
+        focus: visible
+
+        // above everything else
+        z: 10
+
+        onCloseRequested: rootPlayer.subtitleDialogVisible = false
+    }
+
+    // adds the subtitles chosen in the subtitle dialog when their videos are played
+    SubtitleLoader {
+        ctx: MainCtx
+    }
+
     // near the playback controls, where it is noticed
     ResumeDialog {
         anchors.horizontalCenter: playerSpecializationLoader.horizontalCenter
@@ -1043,6 +1062,7 @@ FocusScope {
         z: 0.5
 
         onCloseRequested: rootPlayer.settingsSidebarVisible = false
+        onAddSubtitlesRequested: rootPlayer.subtitleDialogVisible = true
     }
 
     TopBar {

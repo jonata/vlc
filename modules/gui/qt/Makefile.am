@@ -306,6 +306,8 @@ libqt_plugin_la_SOURCES = \
 	player/playback_statistics.hpp \
 	player/subtitle_cues.cpp \
 	player/subtitle_cues.hpp \
+	player/subtitle_matcher.cpp \
+	player/subtitle_matcher.hpp \
 	playlist/media.hpp \
 	playlist/playlist_common.hpp \
 	playlist/playlist_controller.cpp \
@@ -513,6 +515,7 @@ nodist_libqt_plugin_la_SOURCES = \
 	player/seek_thumbnailer.moc.cpp \
 	player/playback_statistics.moc.cpp \
 	player/subtitle_cues.moc.cpp \
+	player/subtitle_matcher.moc.cpp \
 	playlist/playlist_controller.moc.cpp \
 	playlist/playlist_item.moc.cpp \
 	playlist/playlist_model.moc.cpp \
@@ -1255,6 +1258,7 @@ libqml_module_player_a_QML = \
 	player/qml/CompactLibrary.qml \
 	player/qml/StatisticsOverlay.qml \
 	player/qml/SubtitleTimeline.qml \
+	player/qml/SubtitleDialog.qml \
 	player/qml/SettingsOptionList.qml \
 	player/qml/SettingsSection.qml \
 	player/qml/SettingsSidebar.qml \
