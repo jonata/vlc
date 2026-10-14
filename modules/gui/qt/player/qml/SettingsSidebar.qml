@@ -99,6 +99,7 @@ FocusScope {
             "subtitleDelay": Player.subtitleDelayMS,
             "subtitleSpeed": Player.subtitleFPS,
             "subtitleTrack": presets.checkedRow(Player.subtitleTracks),
+            "subtitleLanguage": presets.checkedLanguage(Player.subtitleTracks),
             "textScale": subtitleStyle.textScale,
             "textColor": subtitleStyle.textColor.toString(),
             "outlineThickness": subtitleStyle.outlineThickness,
@@ -106,6 +107,7 @@ FocusScope {
             "margin": subtitleStyle.margin,
             "audioDelay": Player.audioDelayMS,
             "audioTrack": presets.checkedRow(Player.audioTracks),
+            "audioLanguage": presets.checkedLanguage(Player.audioTracks),
             "equalizerEnabled": audioEqualizer.enabled,
             "equalizerPreset": audioEqualizer.preset,
             "equalizerPreamp": audioEqualizer.preamp,
@@ -123,7 +125,9 @@ FocusScope {
     function applySettings(values) {
         Player.subtitleDelayMS = values.subtitleDelay ?? 0
         Player.subtitleFPS = values.subtitleSpeed ?? 1
-        presets.checkRow(Player.subtitleTracks, values.subtitleTrack ?? -1)
+        // the tracks are selected by language, as their order may change between episodes
+        if (!presets.checkLanguage(Player.subtitleTracks, values.subtitleLanguage ?? ""))
+            presets.checkRow(Player.subtitleTracks, values.subtitleTrack ?? -1)
 
         subtitleStyle.textScale = values.textScale ?? subtitleStyle.textScale
         subtitleStyle.textColor = values.textColor ?? subtitleStyle.textColor
@@ -132,7 +136,8 @@ FocusScope {
         subtitleStyle.margin = values.margin ?? subtitleStyle.margin
 
         Player.audioDelayMS = values.audioDelay ?? 0
-        presets.checkRow(Player.audioTracks, values.audioTrack ?? -1)
+        if (!presets.checkLanguage(Player.audioTracks, values.audioLanguage ?? ""))
+            presets.checkRow(Player.audioTracks, values.audioTrack ?? -1)
 
         // changing the values enables the filters, their state is restored afterwards
         if ((values.equalizerPreset ?? -1) >= 0) {

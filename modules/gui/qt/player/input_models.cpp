@@ -48,6 +48,8 @@ QVariant TrackListModel::data(const QModelIndex &index, int role) const
         return m_data[row].m_title;
     else if (role == Qt::CheckStateRole)
         return QVariant::fromValue<bool>(m_data[row].m_selected);
+    else if (role == LanguageRole)
+        return m_data[row].m_language;
     return QVariant{};
 }
 
@@ -153,6 +155,7 @@ QHash<int, QByteArray> TrackListModel::roleNames() const
 {
     QHash<int, QByteArray> roleNames = this->QAbstractListModel::roleNames();
     roleNames[Qt::CheckStateRole] = QByteArrayLiteral("checked");
+    roleNames[LanguageRole] = QByteArrayLiteral("language");
     return roleNames;
 }
 
@@ -184,6 +187,7 @@ void TrackListModel::setMultiSelect(bool multiSelect)
 
 TrackListModel::Data::Data(const vlc_player_track *track_info)
     : m_title( qfu(track_info->name) )
+    , m_language( qfu(track_info->fmt.psz_language) )
     , m_id( track_info->es_id, true )
     , m_selected( track_info->selected )
 {
@@ -193,6 +197,7 @@ void TrackListModel::Data::update(const vlc_player_track *track_info)
 {
     m_id.reset(track_info->es_id, true);
     m_title = qfu(track_info->name);
+    m_language = qfu(track_info->fmt.psz_language);
     m_selected = track_info->selected;
 }
 

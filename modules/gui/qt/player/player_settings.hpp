@@ -241,6 +241,11 @@ public:
     /// checks the item at row of a track model, which selects the track
     Q_INVOKABLE static void checkRow(QAbstractItemModel *model, int row);
 
+    /// language of the checked track of a track model, empty if unknown
+    Q_INVOKABLE static QString checkedLanguage(QAbstractItemModel *model);
+    /// selects the first track of a language, returns whether there was one
+    Q_INVOKABLE static bool checkLanguage(QAbstractItemModel *model, const QString &language);
+
 signals:
     void ctxChanged();
     void presetsChanged();

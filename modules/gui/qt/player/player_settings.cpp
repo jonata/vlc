@@ -521,3 +521,28 @@ void PlayerPresets::checkRow(QAbstractItemModel *model, int row)
         return;
     model->setData(model->index(row, 0), true, Qt::CheckStateRole);
 }
+
+QString PlayerPresets::checkedLanguage(QAbstractItemModel *model)
+{
+    const int row = checkedRow(model);
+    if (row < 0)
+        return {};
+    return model->data(model->index(row, 0), TrackListModel::LanguageRole).toString();
+}
+
+bool PlayerPresets::checkLanguage(QAbstractItemModel *model, const QString &language)
+{
+    if (!model || language.isEmpty())
+        return false;
+
+    for (int row = 0; row < model->rowCount(); ++row)
+    {
+        const QString trackLanguage = model->data(model->index(row, 0), TrackListModel::LanguageRole).toString();
+        if (trackLanguage.compare(language, Qt::CaseInsensitive) == 0)
+        {
+            checkRow(model, row);
+            return true;
+        }
+    }
+    return false;
+}
