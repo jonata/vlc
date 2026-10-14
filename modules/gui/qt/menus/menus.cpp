@@ -763,6 +763,17 @@ QMenu* VLCMenuBar::PopupMenu( qt_intf_t *p_intf, bool show )
         if( p_vout )
         {
             menu->addAction(new BooleanPropertyAction(qtr( "&Fullscreen" ), THEMIM, "fullscreen", menu) );
+
+            /* the minimal view only shows the video */
+            if( MainCtx *mi = p_intf->p_mi )
+            {
+                action = menu->addAction( qtr( "&Hide Interface" ) );
+                action->setShortcut( QString( "Ctrl+H" ) );
+                action->setCheckable( true );
+                action->setChecked( mi->isMinimalView() );
+                connect( action, &QAction::triggered, mi, &MainCtx::setMinimalView );
+            }
+
             menu->addSeparator();
         }
 
