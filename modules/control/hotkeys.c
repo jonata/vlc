@@ -41,6 +41,7 @@
 #include <vlc_spu.h>
 #include <vlc_executor.h>
 #include <vlc_vout_osd.h>
+#include <vlc_subpicture.h>
 #include "math.h"
 
 struct intf_sys_t
@@ -48,6 +49,9 @@ struct intf_sys_t
     vlc_playlist_t *playlist;
     vlc_player_listener_id *player_listener;
     vlc_array_t vouts;
+    /* subpicture channel of the shortcut feedback, for each vout */
+    vlc_array_t shortcut_channels;
+    bool show_shortcut;
     struct
     {
         bool btn_pressed;
@@ -1163,6 +1167,16 @@ player_on_vout_started(vlc_player_t *player, vout_thread_t *vout, void *data)
     if (unlikely(vlc_array_append(&sys->vouts, vout) != 0))
         return;
 
+    ssize_t channel = vout_RegisterSubpictureChannel(vout);
+    if (unlikely(vlc_array_append(&sys->shortcut_channels,
+                                  (void *)(intptr_t)channel) != 0))
+    {
+        if (channel >= 0)
+            vout_UnregisterSubpictureChannel(vout, channel);
+        vlc_array_remove(&sys->vouts, vlc_array_count(&sys->vouts) - 1);
+        return;
+    }
+
     var_AddCallback(vout, "mouse-button-down", MouseButtonCallback, intf);
     var_AddCallback(vout, "mouse-moved", MouseMovedCallback, sys);
 
@@ -1182,6 +1196,11 @@ player_on_vout_stopped(vlc_player_t *player, vout_thread_t *vout, void *data)
         return;
 
     vlc_array_remove(&sys->vouts, idx);
+
+    ssize_t channel = (intptr_t)vlc_array_item_at_index(&sys->shortcut_channels, idx);
+    vlc_array_remove(&sys->shortcut_channels, idx);
+    if (channel >= 0)
+        vout_UnregisterSubpictureChannel(vout, channel);
 
     if (var_GetBool(vout, "viewpoint-changeable"))
         var_DelCallback(vout, "viewpoint-moved",
@@ -1215,12 +1234,90 @@ player_on_vout_changed(vlc_player_t *player,
     }
 }
 
+/* Shows the pressed key and the name of its action over the video, so that
+ * an unexpected change can be traced back to its shortcut */
+static void
+ShowShortcut(intf_thread_t *intf, vlc_action_id_t action_id)
+{
+    intf_sys_t *sys = intf->p_sys;
+    libvlc_int_t *libvlc = vlc_object_instance(intf);
+
+    uint_fast32_t keycode = var_GetInteger(libvlc, "key-pressed");
+    uint_fast32_t key = keycode & ~KEY_MODIFIER;
+    if (keycode == KEY_UNSET
+     || (key >= KEY_MOUSEWHEELUP && key <= KEY_MOUSEWHEELRIGHT))
+        return;
+
+    /* find the name of the action */
+    const char *name = NULL;
+    for (const char *const *names = vlc_actions_get_key_names(intf);
+         *names != NULL; ++names)
+    {
+        char varname[64];
+        snprintf(varname, sizeof(varname), "key-%s", *names);
+        if (vlc_actions_get_id(varname) == action_id)
+        {
+            name = *names;
+            break;
+        }
+    }
+    if (name == NULL)
+        return;
+
+    /* the action may come from elsewhere than the last pressed key */
+    uint_fast32_t *keycodes;
+    size_t count = vlc_actions_get_keycodes(intf, name, false, &keycodes);
+    bool bound = false;
+    for (size_t i = 0; i < count && !bound; ++i)
+        bound = keycodes[i] == keycode;
+    free(keycodes);
+    if (!bound)
+        return;
+
+    char varname[64];
+    snprintf(varname, sizeof(varname), "key-%s", name);
+    const module_config_t *config = config_FindConfig(varname);
+
+    char *keyname = vlc_keycode2str(keycode, true);
+    if (keyname == NULL)
+        return;
+
+    char *text;
+    int ret = (config != NULL && config->psz_text != NULL)
+            ? asprintf(&text, "%s: %s", keyname, vlc_gettext(config->psz_text))
+            : asprintf(&text, "%s", keyname);
+    free(keyname);
+    if (ret < 0)
+        return;
+
+    vlc_player_t *player = vlc_playlist_GetPlayer(sys->playlist);
+    vlc_player_Lock(player);
+    for (size_t i = 0; i < vlc_array_count(&sys->vouts); ++i)
+    {
+        vout_thread_t *vout = vlc_array_item_at_index(&sys->vouts, i);
+        ssize_t channel = (intptr_t)vlc_array_item_at_index(&sys->shortcut_channels, i);
+        if (channel < 0)
+            continue;
+        vout_FlushSubpictureChannel(vout, channel);
+        vout_OSDText(vout, channel, SUBPICTURE_ALIGN_TOP | SUBPICTURE_ALIGN_LEFT,
+                     VLC_TICK_FROM_SEC(2), text);
+    }
+    vlc_player_Unlock(player);
+
+    free(text);
+}
+
 static int
 ActionCallback(vlc_object_t *obj, char const *var,
                vlc_value_t ov, vlc_value_t newval, void *data)
 {
     VLC_UNUSED(obj); VLC_UNUSED(var); VLC_UNUSED(ov);
-    handle_action(data, newval.i_int);
+    intf_thread_t *intf = data;
+
+    handle_action(intf, newval.i_int);
+
+    if (intf->p_sys->show_shortcut)
+        ShowShortcut(intf, newval.i_int);
     return VLC_SUCCESS;
 }
 
@@ -1238,6 +1335,8 @@ Open(vlc_object_t *this)
     sys->vrnav.btn_pressed = false;
     sys->playlist = vlc_intf_GetMainPlaylist(intf);
     vlc_array_init(&sys->vouts);
+    vlc_array_init(&sys->shortcut_channels);
+    sys->show_shortcut = var_InheritBool(intf, "hotkeys-show-shortcut");
     sys->subsync.audio_time = sys->subsync.subtitle_time = VLC_TICK_INVALID;
     sys->spu_channel_order = VLC_VOUT_ORDER_PRIMARY;
     static struct vlc_player_cbs const player_cbs =
@@ -1291,12 +1390,18 @@ static void AutoRun(libvlc_int_t *libvlc)
     intf_Create(libvlc, MODULE_STRING);
 }
 
+#define SHOW_SHORTCUT_TEXT N_("Show the pressed shortcuts")
+#define SHOW_SHORTCUT_LONGTEXT N_("Show the pressed key and its action " \
+    "over the video, when a shortcut is used.")
+
 vlc_module_begin ()
     set_shortname(N_("Hotkeys"))
     set_description(N_("Hotkeys management interface"))
     set_capability("interface", 0)
     set_callbacks(Open, Close)
     set_subcategory(SUBCAT_INTERFACE_HOTKEYS)
+    add_bool("hotkeys-show-shortcut", true, SHOW_SHORTCUT_TEXT,
+             SHOW_SHORTCUT_LONGTEXT)
 
     add_submodule()
     set_capability("autorun", 20)
