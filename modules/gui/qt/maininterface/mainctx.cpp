@@ -341,6 +341,7 @@ MainCtx::~MainCtx()
         settings->setValue( "seek-thumbnails", m_seekThumbnails );
         settings->setValue( "seek-waveform", m_seekWaveform );
         settings->setValue( "playback-statistics", m_playbackStatistics );
+        settings->setValue( "subtitle-timeline", m_subtitleTimeline );
 
         /* Save the stackCentralW sizes */
         settings->endGroup();
@@ -500,6 +501,7 @@ void MainCtx::loadFromSettingsImpl(const bool callSignals)
     loadFromSettings(m_seekThumbnails, "MainWindow/seek-thumbnails", true, this, &MainCtx::seekThumbnailsChanged);
     loadFromSettings(m_seekWaveform, "MainWindow/seek-waveform", true, this, &MainCtx::seekWaveformChanged);
     loadFromSettings(m_playbackStatistics, "MainWindow/playback-statistics", false, this, &MainCtx::playbackStatisticsChanged);
+    loadFromSettings(m_subtitleTimeline, "MainWindow/subtitle-timeline", false, this, &MainCtx::subtitleTimelineChanged);
 
     const auto colorSchemeIndex = getSettings()->value( "MainWindow/color-scheme-index", 0 ).toInt();
     m_colorScheme->setCurrentIndex(colorSchemeIndex);
@@ -787,6 +789,15 @@ void MainCtx::setPlaybackStatistics(bool enabled)
 
     m_playbackStatistics = enabled;
     emit playbackStatisticsChanged(enabled);
+}
+
+void MainCtx::setSubtitleTimeline(bool enabled)
+{
+    if (m_subtitleTimeline == enabled)
+        return;
+
+    m_subtitleTimeline = enabled;
+    emit subtitleTimelineChanged(enabled);
 }
 
 void MainCtx::setInterfaceAlwaysOnTop( bool on_top )

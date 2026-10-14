@@ -907,6 +907,12 @@ FocusScope {
                 title: qsTr("Display")
 
                 SettingsToggle {
+                    text: qsTr("Show the subtitle timeline on the seek bar")
+                    checked: MainCtx.subtitleTimeline
+                    onToggled: (checked) => { MainCtx.subtitleTimeline = checked }
+                }
+
+                SettingsToggle {
                     text: qsTr("Show thumbnail while scrubbing")
                     checked: MainCtx.seekThumbnails
                     onToggled: (checked) => { MainCtx.seekThumbnails = checked }

@@ -112,6 +112,23 @@ T.Pane {
         url: (root._inline && MainCtx.seekThumbnails && Player.hasVideoOutput && Player.isStarted) ? Player.url : ""
     }
 
+    SubtitleCues {
+        id: subtitleCues
+
+        ctx: MainCtx
+        active: root._inline && MainCtx.subtitleTimeline && Player.isStarted
+    }
+
+    // the subtitle timeline replaces the seek bar when the subtitles are known
+    readonly property bool _subtitleTimeline: subtitleCues.ready && subtitleCues.cues.length > 0
+
+    // time at a number of milliseconds, rounded to the second for the labels
+    function _timeAt(ms: real) : var {
+        const length = Player.length
+        const lengthMs = Math.max(1, length.toMilliseconds())
+        return length.scale((Math.round(ms / 1000) * 1000 + 1) / lengthMs)
+    }
+
     AudioWaveform {
         id: audioWaveform
 
@@ -174,8 +191,11 @@ T.Pane {
 
                 text: {
                     const length = Player.length
-                    return Player.time.formatHMS((length.isSubSecond() ? VLCTick.SubSecondFormattedAsMS : 0)
-                                                 | root._timeFormatFlags)
+                    const flags = (length.isSubSecond() ? VLCTick.SubSecondFormattedAsMS : 0) | root._timeFormatFlags
+                    // the subtitle timeline shows the times of its window
+                    if (root._subtitleTimeline)
+                        return root._timeAt(subtitleTimeline.windowStart).formatHMS(flags)
+                    return Player.time.formatHMS(flags)
                 }
                 color: theme.fg.primary
                 font: timeTextMetrics.font
@@ -200,9 +220,15 @@ T.Pane {
 
                 readonly property bool showRemainingTime: (MainCtx.showRemainingTime && Player.remainingTime.valid())
 
-                text: showRemainingTime
-                      ? "-" + Player.remainingTime.formatHMS(VLCTick.SubSecondFormattedAsMS | root._timeFormatFlags)
-                      : Player.length.formatHMS(VLCTick.SubSecondFormattedAsMS | root._timeFormatFlags)
+                text: {
+                    if (root._subtitleTimeline) {
+                        const end = Math.min(subtitleTimeline.windowEnd, Player.length.toMilliseconds())
+                        return root._timeAt(end).formatHMS(VLCTick.SubSecondFormattedAsMS | root._timeFormatFlags)
+                    }
+                    return showRemainingTime
+                           ? "-" + Player.remainingTime.formatHMS(VLCTick.SubSecondFormattedAsMS | root._timeFormatFlags)
+                           : Player.length.formatHMS(VLCTick.SubSecondFormattedAsMS | root._timeFormatFlags)
+                }
                 color: mediaTime.color
                 font: timeTextMetrics.font
                 horizontalAlignment: Text.AlignHCenter
@@ -287,6 +313,16 @@ T.Pane {
                     Navigation.defaultKeyAction(event)
                 }
             },
+            SubtitleTimeline {
+                id: subtitleTimeline
+
+                Layout.fillWidth: true
+
+                barHeight: VLCStyle.seekBar_height
+                cues: subtitleCues.cues
+
+                colorContext.palette: theme.palette
+            },
             Loader {
                 id: bookmarksLoader
 
@@ -315,7 +351,8 @@ T.Pane {
 
                 spacing: VLCStyle.margin_xsmall
 
-                children: root._inline ? [mediaTime, trackPositionSlider, mediaRemainingTime] : []
+                children: root._inline ? [mediaTime, root._subtitleTimeline ? subtitleTimeline : trackPositionSlider, mediaRemainingTime]
+                                       : []
             }
         ]
 
