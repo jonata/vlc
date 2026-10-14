@@ -116,7 +116,7 @@ T.Pane {
         id: audioWaveform
 
         ctx: MainCtx
-        url: (root._inline && !Player.hasVideoOutput && Player.isStarted) ? Player.url : ""
+        url: (root._inline && MainCtx.seekWaveform && !Player.hasVideoOutput && Player.isStarted) ? Player.url : ""
     }
 
     TextMetrics {
@@ -261,7 +261,7 @@ T.Pane {
                 blockStyle: root._inline
 
                 // the audio player shows the waveform of local files
-                waveformPeaks: audioWaveform.peaks
+                waveformPeaks: MainCtx.seekWaveform ? audioWaveform.peaks : []
 
                 seekThumbnailer: root._inline ? seekThumbnailer : null
 

@@ -911,6 +911,12 @@ FocusScope {
                     checked: MainCtx.seekThumbnails
                     onToggled: (checked) => { MainCtx.seekThumbnails = checked }
                 }
+
+                SettingsToggle {
+                    text: qsTr("Show waveform on the seek bar")
+                    checked: MainCtx.seekWaveform
+                    onToggled: (checked) => { MainCtx.seekWaveform = checked }
+                }
             }
 
             SettingsSection {

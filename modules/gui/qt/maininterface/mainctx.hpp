@@ -133,6 +133,7 @@ class MainCtx : public QObject
     Q_PROPERTY(bool albumSections READ albumSections WRITE setAlbumSections NOTIFY albumSectionsChanged FINAL)
     Q_PROPERTY(bool lyricsMode READ lyricsMode WRITE setLyricsMode NOTIFY lyricsModeChanged FINAL)
     Q_PROPERTY(bool seekThumbnails READ seekThumbnails WRITE setSeekThumbnails NOTIFY seekThumbnailsChanged FINAL)
+    Q_PROPERTY(bool seekWaveform READ seekWaveform WRITE setSeekWaveform NOTIFY seekWaveformChanged FINAL)
     Q_PROPERTY(bool usingTouch READ usingTouch NOTIFY usingTouchChanged FINAL)
     Q_PROPERTY(CSDButtonModel *csdButtonModel READ csdButtonModel CONSTANT FINAL)
     Q_PROPERTY(MainInterfaceModes mainInterfaceModes READ getMainInterfaceModes NOTIFY mainInterfaceModesChanged FINAL)
@@ -241,6 +242,7 @@ public:
     inline bool albumSections() const { return m_albumSections; }
     inline bool lyricsMode() const { return m_lyricsMode; }
     inline bool seekThumbnails() const { return m_seekThumbnails; }
+    inline bool seekWaveform() const { return m_seekWaveform; }
     inline ColorSchemeModel* getColorScheme() const { return m_colorScheme; }
     bool hasVLM() const;
     bool useClientSideDecoration() const;
@@ -493,6 +495,7 @@ protected:
 
     bool m_lyricsMode = true;
     bool m_seekThumbnails = true;
+    bool m_seekWaveform = true;
 
     bool m_usingTouch = false;
 
@@ -526,6 +529,7 @@ public slots:
     void setAlbumSections( bool );
     void setLyricsMode( bool );
     void setSeekThumbnails( bool );
+    void setSeekWaveform( bool );
     void incrementIntfUserScaleFactor( bool increment);
     void setIntfUserScaleFactor( double );
     void setHasToolbarMenu( bool );
@@ -578,6 +582,7 @@ signals:
     void albumSectionsChanged( bool );
     void lyricsModeChanged( bool );
     void seekThumbnailsChanged( bool );
+    void seekWaveformChanged( bool );
     void colorSchemeChanged( QString );
     void useClientSideDecorationChanged();
     void hasToolbarMenuChanged();
