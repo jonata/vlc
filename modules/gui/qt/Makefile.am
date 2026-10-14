@@ -298,6 +298,8 @@ libqt_plugin_la_SOURCES = \
 	player/player_settings.hpp \
 	player/audio_waveform.cpp \
 	player/audio_waveform.hpp \
+	player/folder_media_model.cpp \
+	player/folder_media_model.hpp \
 	playlist/media.hpp \
 	playlist/playlist_common.hpp \
 	playlist/playlist_controller.cpp \
@@ -501,6 +503,7 @@ nodist_libqt_plugin_la_SOURCES = \
 	player/control_list_filter.moc.cpp \
 	player/player_settings.moc.cpp \
 	player/audio_waveform.moc.cpp \
+	player/folder_media_model.moc.cpp \
 	playlist/playlist_controller.moc.cpp \
 	playlist/playlist_item.moc.cpp \
 	playlist/playlist_model.moc.cpp \
