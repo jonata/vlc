@@ -356,6 +356,12 @@ QtObject {
     readonly property int settingsSidebar_width: MainCtx.dp(360, scale)
     readonly property int settingsSection_radius: MainCtx.dp(6, scale)
     readonly property int settingsSection_padding: MainCtx.dp(16, scale)
+
+    // thumbnail shown while hovering the seek bar
+    readonly property int seekPreview_width: MainCtx.dp(252, scale)
+    readonly property int seekPreview_padding: MainCtx.dp(10, scale)
+    readonly property int seekPreview_radius: MainCtx.dp(14, scale)
+    readonly property int seekPreview_imageRadius: MainCtx.dp(4, scale)
     readonly property int settingsSlider_height: MainCtx.dp(16, scale)
     readonly property int settingsSlider_inset: MainCtx.dp(2, scale)
     readonly property int settingsSlider_radius: MainCtx.dp(4, scale)

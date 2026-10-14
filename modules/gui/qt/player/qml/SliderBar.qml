@@ -91,7 +91,9 @@ T.ProgressBar {
         onTriggered: control._isSeekPointsShown = false
     }
 
+    // the thumbnail preview shows the time itself
     Widgets.PointingToolTipAttached.visible: (hoverHandler.hovered || control.visualFocus || dragHandler.active)
+                                             && !thumbnailPreview.visible
 
     Widgets.PointingToolTipAttached.text: {
         if (!Widgets.PointingToolTipAttached.instance?.visible)
@@ -695,7 +697,7 @@ T.ProgressBar {
         }
     }
 
-    // thumbnail of the hovered position, above the time tool tip
+    // thumbnail of the hovered position, with its time below
     Rectangle {
         id: thumbnailPreview
 
@@ -704,29 +706,60 @@ T.ProgressBar {
         visible: !!control.seekThumbnailer && hoverHandler.hovered
                  && thumbnailImage.status === Image.Ready
 
-        width: thumbnailImage.paintedWidth + 2 * border.width
-        height: thumbnailImage.paintedHeight + 2 * border.width
+        width: thumbnailImage.width + 2 * VLCStyle.seekPreview_padding
+        height: thumbnailImage.height + thumbnailCaption.height + 2 * VLCStyle.seekPreview_padding
 
         x: Helpers.clamp(_hoverX - width / 2, 0, control.width - width)
-        y: -height - VLCStyle.dp(40, VLCStyle.scale)
+        y: -height - VLCStyle.margin_xsmall
 
-        radius: VLCStyle.settingsSection_radius
-        color: control.backgroundColor
-        border.width: VLCStyle.dp(2, VLCStyle.scale)
-        border.color: control.backgroundColor
+        radius: VLCStyle.seekPreview_radius
+        color: Qt.alpha(waveformTheme.bg.primary, 0.95)
 
-        Image {
+        Widgets.ImageExt {
             id: thumbnailImage
 
-            anchors.centerIn: parent
+            x: VLCStyle.seekPreview_padding
+            y: VLCStyle.seekPreview_padding
 
-            width: VLCStyle.dp(200, VLCStyle.scale)
-            height: VLCStyle.dp(150, VLCStyle.scale)
+            // sized after the thumbnail, so that nothing is cropped
+            width: VLCStyle.seekPreview_width
+            height: (implicitWidth > 0) ? Math.round(width * implicitHeight / implicitWidth) : 0
+
+            radius: VLCStyle.seekPreview_imageRadius
 
             source: control.seekThumbnailer?.thumbnail ?? ""
-            fillMode: Image.PreserveAspectFit
-            asynchronous: true
+            fillMode: Image.Stretch
             cache: false
+        }
+
+        // time of the hovered position, and its chapter
+        T.Label {
+            id: thumbnailCaption
+
+            anchors.top: thumbnailImage.bottom
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.leftMargin: VLCStyle.seekPreview_padding
+            anchors.rightMargin: VLCStyle.seekPreview_padding
+
+            topPadding: VLCStyle.seekPreview_padding
+
+            text: {
+                if (!thumbnailPreview.visible)
+                    return ""
+
+                const length = Player.length
+                let text = length.scale(control._hoverPosition)
+                                 .formatHMS(length.isSubSecond() ? VLCTick.SubSecondFormattedAsMS : 0)
+                if (Player.hasChapters)
+                    text += " - " + Player.chapters.getNameAtPosition(control._hoverPosition)
+                return text
+            }
+
+            horizontalAlignment: Text.AlignHCenter
+            elide: Text.ElideRight
+            color: waveformTheme.fg.secondary
+            font.pixelSize: VLCStyle.fontSize_large
         }
     }
 
