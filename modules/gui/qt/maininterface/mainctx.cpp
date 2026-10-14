@@ -338,6 +338,7 @@ MainCtx::~MainCtx()
         settings->setValue( "album-sections", m_albumSections );
 
         settings->setValue( "lyrics-mode", m_lyricsMode );
+        settings->setValue( "seek-thumbnails", m_seekThumbnails );
 
         /* Save the stackCentralW sizes */
         settings->endGroup();
@@ -493,6 +494,8 @@ void MainCtx::loadFromSettingsImpl(const bool callSignals)
     loadFromSettings(m_albumSections, "MainWindow/album-sections", true, this, &MainCtx::albumSectionsChanged);
 
     loadFromSettings(m_lyricsMode, "MainWindow/lyrics-mode", true, this, &MainCtx::lyricsModeChanged);
+
+    loadFromSettings(m_seekThumbnails, "MainWindow/seek-thumbnails", true, this, &MainCtx::seekThumbnailsChanged);
 
     const auto colorSchemeIndex = getSettings()->value( "MainWindow/color-scheme-index", 0 ).toInt();
     m_colorScheme->setCurrentIndex(colorSchemeIndex);
@@ -753,6 +756,15 @@ void MainCtx::setLyricsMode(bool enabled)
 
     m_lyricsMode = enabled;
     emit lyricsModeChanged(enabled);
+}
+
+void MainCtx::setSeekThumbnails(bool enabled)
+{
+    if (m_seekThumbnails == enabled)
+        return;
+
+    m_seekThumbnails = enabled;
+    emit seekThumbnailsChanged(enabled);
 }
 
 void MainCtx::setInterfaceAlwaysOnTop( bool on_top )

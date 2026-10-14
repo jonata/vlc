@@ -904,6 +904,17 @@ FocusScope {
 
             SettingsSection {
                 Layout.fillWidth: true
+                title: qsTr("Display")
+
+                SettingsToggle {
+                    text: qsTr("Show thumbnail while scrubbing")
+                    checked: MainCtx.seekThumbnails
+                    onToggled: (checked) => { MainCtx.seekThumbnails = checked }
+                }
+            }
+
+            SettingsSection {
+                Layout.fillWidth: true
                 title: qsTr("Chapters")
 
                 visible: Player.hasChapters
@@ -944,5 +955,48 @@ FocusScope {
 
     component ActionButton: Widgets.ButtonExt {
         Layout.fillWidth: true
+    }
+
+    // a labelled switch, for options that are on or off
+    component SettingsToggle: Item {
+        id: settingsToggle
+
+        property alias text: toggleLabel.text
+        property bool checked: false
+
+        signal toggled(bool checked)
+
+        Layout.fillWidth: true
+        implicitHeight: Math.max(toggleLabel.implicitHeight, toggleButton.implicitHeight)
+
+        T.Label {
+            id: toggleLabel
+
+            anchors.left: parent.left
+            anchors.right: toggleButton.left
+            anchors.rightMargin: VLCStyle.margin_small
+            anchors.verticalCenter: parent.verticalCenter
+
+            elide: Text.ElideRight
+            color: theme.fg.primary
+            font.pixelSize: VLCStyle.fontSize_normal
+        }
+
+        Widgets.CheckButton {
+            id: toggleButton
+
+            anchors.right: parent.right
+            anchors.verticalCenter: parent.verticalCenter
+
+            text: toggleLabel.text
+
+            onClicked: settingsToggle.toggled(checked)
+
+            // CheckButton positions its handle when checked changes, which
+            // needs to happen once its size is known
+            Component.onCompleted: Qt.callLater(() => {
+                toggleButton.checked = Qt.binding(() => settingsToggle.checked)
+            })
+        }
     }
 }

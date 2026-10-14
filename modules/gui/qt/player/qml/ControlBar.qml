@@ -109,7 +109,7 @@ T.Pane {
         id: seekThumbnailer
 
         ctx: MainCtx
-        url: (root._inline && Player.hasVideoOutput && Player.isStarted) ? Player.url : ""
+        url: (root._inline && MainCtx.seekThumbnails && Player.hasVideoOutput && Player.isStarted) ? Player.url : ""
     }
 
     AudioWaveform {
