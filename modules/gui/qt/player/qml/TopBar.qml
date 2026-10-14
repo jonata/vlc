@@ -103,6 +103,10 @@ FocusScope{
     // Signals
 
     signal togglePlaylistVisibility()
+    signal toggleLibrary()
+
+    // the compact library is shown next to the video
+    property bool libraryVisible: false
     signal requestLockUnlockAutoHide(bool lock)
     signal backRequested()
 
@@ -357,7 +361,7 @@ FocusScope{
                 checked: compactContextMenu.shown
 
                 Navigation.parentItem: root
-                Navigation.rightItem: breadcrumb
+                Navigation.rightItem: compactLibraryBtn
 
                 onClicked: compactContextMenu.popup(this.mapToGlobal(0, height))
 
@@ -381,11 +385,38 @@ FocusScope{
                 }
             }
 
+            Widgets.IconToolButton {
+                id: compactLibraryBtn
+
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.left: compactMenuBtn.right
+                anchors.leftMargin: VLCStyle.margin_xsmall
+
+                visible: root._compact
+                enabled: visible
+
+                font.pixelSize: VLCStyle.icon_normal
+                text: VLCIcons.panel_left
+                description: qsTr("Library")
+
+                checked: root.libraryVisible
+
+                AccessibleCompat.id: "topBarLibraryButton"
+
+                Navigation.parentItem: root
+                Navigation.leftItem: compactMenuBtn
+                Navigation.rightItem: breadcrumb
+
+                onClicked: root.toggleLibrary()
+
+                onHoveredChanged: root.requestLockUnlockAutoHide(hovered)
+            }
+
             Rectangle {
                 id: compactSeparator
 
                 anchors.verticalCenter: parent.verticalCenter
-                anchors.left: compactMenuBtn.right
+                anchors.left: compactLibraryBtn.right
                 anchors.leftMargin: VLCStyle.margin_xsmall
 
                 visible: root._compact
@@ -415,7 +446,7 @@ FocusScope{
                 AccessibleCompat.id: "topBarBreadcrumbButton"
 
                 Navigation.parentItem: root
-                Navigation.leftItem: compactMenuBtn
+                Navigation.leftItem: compactLibraryBtn
                 Navigation.rightItem: playlistGroup
 
                 onClicked: root.backRequested()

@@ -1243,6 +1243,7 @@ libqml_module_player_a_QML = \
 	player/qml/TracksPageAudio.qml \
 	player/qml/TracksPageSpeed.qml \
 	player/qml/TracksPageSubtitle.qml \
+	player/qml/CompactLibrary.qml \
 	player/qml/SettingsOptionList.qml \
 	player/qml/SettingsSection.qml \
 	player/qml/SettingsSidebar.qml \

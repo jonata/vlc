@@ -66,6 +66,7 @@ FocusScope {
     readonly property bool _framedVideo: MainCtx.hasEmbededVideo && _controlsUnderVideo
 
     property bool settingsSidebarVisible: false
+    property bool compactLibraryVisible: false
 
     function toggleSettingsSidebar() {
         settingsSidebarVisible = !settingsSidebarVisible
@@ -198,7 +199,9 @@ FocusScope {
             top: (MainCtx.hasEmbededVideo && rootPlayer._controlsUnderVideo) ? topBar.bottom : parent.top
             bottom: (MainCtx.hasEmbededVideo && rootPlayer._controlsUnderVideo) ? controlBar.top : parent.bottom
 
-            leftMargin: rootPlayer._framedVideo ? VLCStyle.videoFrame_inset : 0
+            // with the framed video, the compact library takes space instead of covering the video
+            leftMargin: rootPlayer._framedVideo ? (VLCStyle.videoFrame_inset + (compactLibrary.visible ? compactLibrary.width : 0))
+                                                : 0
             // with the framed video, the settings sidebar takes space instead of covering the video
             rightMargin: rootPlayer._framedVideo ? (VLCStyle.videoFrame_inset + (settingsSidebar.visible ? settingsSidebar.width : 0))
                                                  : 0
@@ -971,6 +974,23 @@ FocusScope {
         border.color: windowTheme.bg.primary
     }
 
+    CompactLibrary {
+        id: compactLibrary
+
+        anchors.left: parent.left
+        anchors.top: topBar.bottom
+        anchors.bottom: controlBar.top
+
+        width: implicitWidth
+
+        visible: rootPlayer.compactLibraryVisible
+
+        // above the video frame, below the bars
+        z: 0.5
+
+        onCloseRequested: rootPlayer.compactLibraryVisible = false
+    }
+
     SettingsSidebar {
         id: settingsSidebar
 
@@ -1053,6 +1073,9 @@ FocusScope {
         }
 
         onTogglePlaylistVisibility: playlistVisibility.togglePlaylistVisibility()
+
+        libraryVisible: rootPlayer.compactLibraryVisible
+        onToggleLibrary: rootPlayer.compactLibraryVisible = !rootPlayer.compactLibraryVisible
 
         onRequestLockUnlockAutoHide: (lock) => {
             rootPlayer.lockUnlockAutoHide(lock)

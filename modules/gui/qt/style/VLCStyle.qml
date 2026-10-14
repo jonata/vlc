@@ -362,6 +362,9 @@ QtObject {
     readonly property int settingsSlider_handleWidth: MainCtx.dp(6, scale)
     readonly property int settingsSlider_handleHeight: MainCtx.dp(20, scale)
 
+    // Compact library of the player
+    readonly property int compactLibrary_width: MainCtx.dp(320, scale)
+
     // Music player
     readonly property int musicCover_radius: MainCtx.dp(12, scale)
 
