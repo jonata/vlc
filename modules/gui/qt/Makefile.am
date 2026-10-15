@@ -168,6 +168,7 @@ libqt_plugin_la_SOURCES = \
 	dialogs/playlists/playlists.cpp dialogs/playlists/playlists.hpp \
 	dialogs/hotkeys/hotkeys_model.cpp dialogs/hotkeys/hotkeys_model.hpp \
 	dialogs/open/open_media_helper.cpp dialogs/open/open_media_helper.hpp \
+	dialogs/preferences/preferences_model.cpp dialogs/preferences/preferences_model.hpp \
 	maininterface/compositor.hpp \
 	maininterface/compositor.cpp \
 	maininterface/compositor_common.hpp \
@@ -463,6 +464,7 @@ nodist_libqt_plugin_la_SOURCES = \
 	dialogs/playlists/playlists.moc.cpp \
 	dialogs/hotkeys/hotkeys_model.moc.cpp \
 	dialogs/open/open_media_helper.moc.cpp \
+	dialogs/preferences/preferences_model.moc.cpp \
 	maininterface/compositor.moc.cpp \
 	maininterface/compositor_common.moc.cpp \
 	maininterface/compositor_dummy.moc.cpp \

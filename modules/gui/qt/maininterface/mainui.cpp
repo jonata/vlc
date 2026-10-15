@@ -38,6 +38,7 @@
 #include "dialogs/hotkeys/hotkeys_model.hpp"
 #include "maininterface/onboarding.hpp"
 #include "dialogs/open/open_media_helper.hpp"
+#include "dialogs/preferences/preferences_model.hpp"
 #include "player/delay_estimator.hpp"
 
 #include "dialogs/toolbar/controlbar_profile_model.hpp"
@@ -245,6 +246,7 @@ void MainUI::registerQMLTypes()
         qmlRegisterType<HotkeysModel>(uri, versionMajor, versionMinor, "HotkeysModel");
         qmlRegisterType<Onboarding>(uri, versionMajor, versionMinor, "Onboarding");
         qmlRegisterType<OpenMediaHelper>(uri, versionMajor, versionMinor, "OpenMediaHelper");
+        qmlRegisterType<PreferencesModel>(uri, versionMajor, versionMinor, "PreferencesModel");
         qmlRegisterTypesAndRevisions<SearchCtx>(uri, versionMajor);
         qmlRegisterTypesAndRevisions<SortCtx>(uri, versionMajor);
         qmlRegisterUncreatableType<UINotifier>(uri, versionMajor, versionMinor, "UINotifier", "");
