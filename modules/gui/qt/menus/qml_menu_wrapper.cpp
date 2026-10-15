@@ -29,6 +29,8 @@
 #include "dialogs/dialogs_provider.hpp"
 #include "util/colorizedsvgicon.hpp"
 #include "maininterface/navigationmodel.hpp"
+#include "maininterface/pinned_items.hpp"
+#include "style/vlcicons.hpp"
 
 // Qt includes
 #include <QPainter>
@@ -861,6 +863,36 @@ void PlaylistListContextMenu::popup(const QModelIndexList & selected, QPoint pos
     action = menu->addAction(qtr("Delete"));
 
     connect(action, &QAction::triggered, this, &PlaylistListContextMenu::requestDeleteSelectedPlaylists);
+
+    // a playlist can be pinned to the side navigation
+    if (ids.count() == 1)
+    {
+        const QModelIndex index = selected.first();
+        const QString id = ids.first().value<MLItemId>().toString();
+        const QString name = m_model->data(index, MLPlaylistListModel::PLAYLIST_NAME).toString();
+        const QString key = QStringLiteral("playlist:") + id;
+
+        PinnedItems *pinned = m_ctx->getPinnedItems();
+
+        menu->addSeparator();
+
+        if (pinned->isPinned(key))
+        {
+            action = menu->addAction(qtr("Unpin from Sidebar"));
+            connect(action, &QAction::triggered, pinned, [pinned, key]() {
+                pinned->unpin(key);
+            });
+        }
+        else
+        {
+            action = menu->addAction(qtr("Pin to Sidebar"));
+            connect(action, &QAction::triggered, pinned, [pinned, key, id, name]() {
+                pinned->pin(key, name, VLCIcons::playlist,
+                            { QStringLiteral("playlists"), QStringLiteral("list") },
+                            { { QStringLiteral("parentId"), id }, { QStringLiteral("title"), name } });
+            });
+        }
+    }
 
     menu->popup(pos);
 }

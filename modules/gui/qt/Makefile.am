@@ -181,6 +181,7 @@ libqt_plugin_la_SOURCES = \
 	maininterface/mainctx.cpp \
 	maininterface/mainctx.hpp \
 	maininterface/mainctx_submodels.cpp maininterface/mainctx_submodels.hpp \
+	maininterface/pinned_items.cpp maininterface/pinned_items.hpp \
 	maininterface/mainui.cpp \
 	maininterface/mainui.hpp \
 	maininterface/navigationmodel.cpp maininterface/navigationmodel.hpp \
@@ -464,6 +465,7 @@ nodist_libqt_plugin_la_SOURCES = \
 	maininterface/interface_window_handler.moc.cpp \
 	maininterface/mainctx.moc.cpp \
 	maininterface/mainctx_submodels.moc.cpp \
+	maininterface/pinned_items.moc.cpp \
 	maininterface/mainui.moc.cpp \
 	maininterface/navigationmodel.moc.cpp \
 	maininterface/videosurface.moc.cpp \

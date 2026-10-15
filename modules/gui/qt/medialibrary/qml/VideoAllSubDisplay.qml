@@ -79,7 +79,14 @@ Widgets.PageExt {
 
         model: _meta?.model ?? null
 
-        contextMenu: MLContextMenu { model: _meta ? _meta.model : null; showPlayAsAudioAction: true }
+        contextMenu: MLContextMenu {
+            model: _meta ? _meta.model : null
+            showPlayAsAudioAction: true
+
+            // the groups and the folders can be pinned
+            pinPath: (MainCtx.grouping !== MainCtx.GROUPING_NONE) ? ["video", "all", "group"] : null
+            pinIcon: (MainCtx.grouping === MainCtx.GROUPING_FOLDER) ? VLCIcons.folder : VLCIcons.topbar_video
+        }
 
         gridLabels: _meta?.gridLabels ?? videoAll.getLabel
 

@@ -33,6 +33,7 @@
 
 #include "mainctx.hpp"
 #include "mainctx_submodels.hpp"
+#include "pinned_items.hpp"
 #include "medialibrary/mlhelper.hpp"
 
 #include "compositor.hpp"
@@ -189,6 +190,7 @@ MainCtx::MainCtx(qt_intf_t *_p_intf)
     m_sort = new SortCtx(this);
     m_search = new SearchCtx(this);
     m_playqueuePanel = new SidePanelCtx(this);
+    m_pinnedItems = new PinnedItems(getSettings(), this);
     m_navigationPanel = new SidePanelCtx(this);
 
     // getOSInfo();

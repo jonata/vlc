@@ -23,6 +23,7 @@ import VLC.MediaLibrary
 import VLC.Dialogs
 
 import VLC.Util
+import VLC.Style
 
 // @brief - a generic ML context menu
 NativeMenu {
@@ -36,6 +37,11 @@ NativeMenu {
     property string albumIdDataRole: "album_id"
 
     property bool showPlayAsAudioAction: false
+
+    // path of the page of an item, to pin it to the side navigation (such as
+    // a folder of videos), null if the items can not be pinned
+    property var pinPath: null
+    property string pinIcon: VLCIcons.folder
 
     // This is only applicable when the model is `MLAudioModel`:
     property bool showPlayAsAlbumAction: implicitShowPlayAsAlbumAction
@@ -112,6 +118,25 @@ NativeMenu {
             "action": deleteFileFromSource,
             "visible": _deleteFileFromSource
         },{
+            "text": qsTr("Pin to Sidebar"),
+            "action": function(dataList, options, indexes) {
+                const item = dataList[0]
+                const id = item[idDataRole].toString()
+                MainCtx.pinnedItems.pin("library:" + id, item.title ?? item.name ?? "", root.pinIcon,
+                                        root.pinPath, { parentId: id, title: item.title ?? item.name ?? "" })
+            },
+            "visible": function(dataList, options, indexes) {
+                return _canPin(dataList) && !MainCtx.pinnedItems.isPinned("library:" + dataList[0][idDataRole].toString())
+            }
+        },{
+            "text": qsTr("Unpin from Sidebar"),
+            "action": function(dataList, options, indexes) {
+                MainCtx.pinnedItems.unpin("library:" + dataList[0][idDataRole].toString())
+            },
+            "visible": function(dataList, options, indexes) {
+                return _canPin(dataList) && MainCtx.pinnedItems.isPinned("library:" + dataList[0][idDataRole].toString())
+            }
+        },{
             "text": qsTr("Media Information"),
             "action": function(dataList, options, indexes) {
                 DialogsProvider.mediaInfoDialog(dataList[0][idDataRole])
@@ -159,6 +184,11 @@ NativeMenu {
 
     function addToVideoOnlyPlaylist(dataList, options, indexes) {
         addToAPlaylist(dataList, options, indexes, MLPlaylistListModel.PLAYLIST_TYPE_VIDEO_ONLY)
+    }
+
+    // a single container, such as a folder or a group of videos
+    function _canPin(dataList) {
+        return !!root.pinPath && dataList.length === 1 && dataList[0][idDataRole].hasParent()
     }
 
     function addToAPlaylist(dataList, options, indexes, type) {
