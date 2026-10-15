@@ -111,8 +111,17 @@ FocusScope {
                  "qrc:///qt/qml/VLC/MediaLibrary/HomeDisplay.qml" :
                  "qrc:///qt/qml/VLC/MainInterface/NoMedialibHome.qml"
         }, {
+            name: "recent",
+            url: "qrc:///qt/qml/VLC/MediaLibrary/RecentDisplay.qml"
+        }, {
             name: "video",
             url: "qrc:///qt/qml/VLC/MediaLibrary/VideoDisplay.qml"
+        }, {
+            name: "playlists",
+            url: "qrc:///qt/qml/VLC/MediaLibrary/PlaylistsDisplay.qml"
+        }, {
+            name: "streams",
+            url: "qrc:///qt/qml/VLC/MediaLibrary/NetworkStreamsDisplay.qml"
         }, {
             name: "music",
             url: "qrc:///qt/qml/VLC/MediaLibrary/MusicDisplay.qml"

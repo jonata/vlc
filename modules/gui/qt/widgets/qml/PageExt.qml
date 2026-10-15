@@ -41,6 +41,9 @@ T.Page {
 
     property var sortModel: _firstChild?.sortModel ?? null
 
+    // buttons shown in the header, before the sort, view and search controls
+    property list<Item> headerActions
+
     //property is *not* readOnly, a PageLoader may define a localMenuDelegate common for its subviews (music, video)
     property SortMenu sortMenu: null
 
@@ -183,6 +186,12 @@ T.Page {
                 Layout.fillWidth: true
 
                 color: theme.fg.primary
+            }
+
+            Row {
+                spacing: VLCStyle.margin_xsmall
+                visible: children.length > 0
+                children: root.headerActions
             }
 
             GridSortFilterControls {

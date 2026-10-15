@@ -152,6 +152,11 @@ public:
                                               const QString& placeholder,
                                               bool* ok = nullptr);
 
+    /// asks for media files, returns their URLs (empty if cancelled)
+    Q_INVOKABLE QList<QUrl> getOpenMediaUrls(const QString& title);
+    /// asks for a folder, returns its URL (empty if cancelled)
+    Q_INVOKABLE QUrl getFolderUrl(const QString& title);
+
 protected:
     void customEvent( QEvent *) override;
 

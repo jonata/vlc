@@ -120,6 +120,20 @@ QString DialogsProvider::getSaveFileName( QWidget *parent,
     return QFileDialog::getSaveFileUrl( parent, caption, dir, filter, selectedFilter, QFileDialog::Options(), schemes).toLocalFile();
 }
 
+QList<QUrl> DialogsProvider::getOpenMediaUrls(const QString &title)
+{
+    // the extensions are separated by semicolons, the filters by spaces
+    const QString extensions = QStringLiteral( EXTENSIONS_MEDIA ).replace( ';', ' ' );
+    return QFileDialog::getOpenFileUrls(nullptr, title, p_intf->p_mi->getDialogFilePath(),
+                                        qtr("Media Files") + " (" + extensions + ");;" +
+                                        qtr("All Files") + " (*)");
+}
+
+QUrl DialogsProvider::getFolderUrl(const QString &title)
+{
+    return QFileDialog::getExistingDirectoryUrl(nullptr, title, p_intf->p_mi->getDialogFilePath());
+}
+
 QVariant DialogsProvider::getTextDialog(QWidget *parent,
                                         const QString &title,
                                         const QString &label,

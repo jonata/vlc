@@ -1187,6 +1187,11 @@ libqml_module_medialibrary_a_QML = \
 	medialibrary/qml/MLGlobalShortcuts.qml \
 	medialibrary/qml/Bookmarks.qml \
 	medialibrary/qml/BookmarkList.qml \
+	medialibrary/qml/RecentDisplay.qml \
+	medialibrary/qml/PlaylistsDisplay.qml \
+	medialibrary/qml/NewPlaylistDialog.qml \
+	medialibrary/qml/NetworkStreamsDisplay.qml \
+	medialibrary/qml/AddStreamDialog.qml \
 	medialibrary/qml/MLContextMenu.qml \
 	medialibrary/qml/MLDragItem.qml \
 	medialibrary/qml/MLTableColumns.qml \
