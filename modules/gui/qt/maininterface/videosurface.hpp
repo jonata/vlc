@@ -145,6 +145,7 @@ private:
     // such as atomic boolean or locking is not necessary:
     bool m_dprChanged = false; // itemChange() <-> updatePaintNode() (different threads, but GUI thread is blocked)
     bool m_videoEnabledChanged = false; // we need to enforce a full fledged synchronization in this case
+    bool m_becameVisible = false; // the geometry may have changed while hidden, it is synchronized again
 
     // These are updated and read from either the item/GUI thread or the render thread:
     QSizeF m_oldRenderSize;

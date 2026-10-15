@@ -327,6 +327,15 @@ void VideoSurface::itemChange(ItemChange change, const ItemChangeData &value)
                 // Connection is made in `::updatePaintNode()` (which is called when both the item is visible and `ItemHasContents` is set).
                 disconnect(m_synchConnection);
             }
+            else
+            {
+                // The synchronization stopped while hidden, and showing the item does not necessarily
+                // call `::updatePaintNode()`, which makes the connection again. Without it, a size
+                // change in between would never reach the video window:
+                m_becameVisible = true;
+                if (flags().testFlag(ItemHasContents)) // "Only items which specify QQuickItem::ItemHasContents are allowed to call QQuickItem::update()."
+                    update();
+            }
             break;
         }
         default: break;
@@ -430,10 +439,11 @@ QSGNode *VideoSurface::updatePaintNode(QSGNode *node, UpdatePaintNodeData *data)
         m_dprChanged = false;
     }
 
-    if (m_videoEnabledChanged)
+    if (m_videoEnabledChanged || m_becameVisible)
     {
         m_allDirty = true;
         m_videoEnabledChanged = false;
+        m_becameVisible = false;
     }
 
     if (QThread::currentThread() == thread())
