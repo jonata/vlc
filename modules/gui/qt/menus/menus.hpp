@@ -36,9 +36,14 @@ class VLCMenu : public QMenu
     Q_OBJECT
 
 public:
-    explicit VLCMenu(qt_intf_t* p_intf) : QMenu()
+    /// a translucent menu can draw rounded corners
+    explicit VLCMenu(qt_intf_t* p_intf, bool translucent = false) : QMenu()
     {
         assert(p_intf);
+        // the native window is created below, and its transparency can not
+        // be changed afterwards
+        if (translucent)
+            setAttribute(Qt::WA_TranslucentBackground);
         if (isWindow())
         {
             QVLCDialog::setWindowTransientParent(this, nullptr, p_intf);
