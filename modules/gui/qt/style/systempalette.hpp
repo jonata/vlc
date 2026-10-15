@@ -172,6 +172,9 @@ signals:
     void CSDMetricsChanged();
 
 private:
+    /// reads the accent color (qt-accent-color)
+    void loadAccentColor();
+
     void updatePalette();
 
     void makeLightPalette();

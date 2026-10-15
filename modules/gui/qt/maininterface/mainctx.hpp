@@ -595,6 +595,8 @@ signals:
     void albumSectionsChanged( bool );
     void lyricsModeChanged( bool );
     void seekThumbnailsChanged( bool );
+    /// the accent color of the palette changed (qt-accent-color)
+    void accentColorChanged();
     void seekWaveformChanged( bool );
     void playbackStatisticsChanged( bool );
     void subtitleTimelineChanged( bool );

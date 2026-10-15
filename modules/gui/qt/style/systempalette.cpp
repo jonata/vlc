@@ -304,37 +304,43 @@ SystemPalette::SystemPalette(QObject* parent)
 
 void SystemPalette::componentComplete()
 {
+    loadAccentColor();
+    updatePalette();
+}
+
+void SystemPalette::loadAccentColor()
+{
+    assert(m_ctx);
+    char* accentColor = var_InheritString(m_ctx->getIntf(), "qt-accent-color");
+    assert(accentColor);
+
+    if (!strcmp(accentColor, "default"))
     {
-        assert(m_ctx);
-        char* accentColor = var_InheritString(m_ctx->getIntf(), "qt-accent-color");
-        assert(accentColor);
-
-        if (!strcmp(accentColor, "default"))
-        {
-            // Use default
-        }
+        // the orange of VLC, it may have been changed before
+        orange500 = QColor("#D37918");
+        orange800 = QColor("#FF610A");
+        orange900 = QColor("#371F06");
+    }
 #if QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
-        else if (!strcmp(accentColor, "system"))
-        {
-            assert(qApp);
-            const auto palette = qApp->palette();
+    else if (!strcmp(accentColor, "system"))
+    {
+        assert(qApp);
+        const auto palette = qApp->palette();
 
-            orange500 = palette.color(QPalette::Normal, QPalette::Accent);
-            orange800 = orange500.lighter(150);
-            orange900 = orange500.darker(384);
-        }
+        orange500 = palette.color(QPalette::Normal, QPalette::Accent);
+        // a lighter accent fades on the light theme, the color is kept
+        orange800 = orange500;
+        orange900 = orange500.darker(384);
+    }
 #endif
-        else
-        {
-            orange500 = QColor(accentColor);
-            orange800 = orange500.lighter(150);
-            orange900 = orange500.darker(384);
-        }
-
-        free(accentColor);
+    else
+    {
+        orange500 = QColor(accentColor);
+        orange800 = orange500;
+        orange900 = orange500.darker(384);
     }
 
-    updatePalette();
+    free(accentColor);
 }
 
 ColorSchemeModel::ColorScheme SystemPalette::source() const
@@ -379,7 +385,14 @@ void SystemPalette::setCtx(MainCtx* ctx)
 {
     if (ctx == m_ctx)
         return;
+    if (m_ctx)
+        disconnect(m_ctx, &MainCtx::accentColorChanged, this, nullptr);
     m_ctx = ctx;
+    if (m_ctx)
+        connect(m_ctx, &MainCtx::accentColorChanged, this, [this]() {
+            loadAccentColor();
+            updatePalette();
+        });
     emit ctxChanged();
     updatePalette();
 }
