@@ -52,6 +52,17 @@ typedef struct vout_display_sys_t
     struct wp_viewporter *viewporter;
     struct wp_viewport *viewport;
 
+    /* With a viewporter, the pictures are shown on a surface of their own,
+     * placed within the surface of the window, which is filled with black
+     * around them. Otherwise, the pictures are shown on the surface of the
+     * window. */
+    struct wl_subcompositor *subcompositor;
+    struct wl_surface *video_surface;
+    struct wl_subsurface *video_subsurface;
+    struct wp_viewport *background_viewport;
+    struct wl_buffer *background;
+    uint32_t video_surface_version;
+
     size_t active_buffers;
 } vout_display_sys_t;
 
@@ -79,6 +90,17 @@ static const struct wl_buffer_listener buffer_cbs =
     buffer_release_cb,
 };
 
+static void SetBackgroundSize(vout_display_t *vd);
+
+/* surface showing the pictures */
+static struct wl_surface *PictureSurface(vout_display_t *vd)
+{
+    vout_display_sys_t *sys = vd->sys;
+
+    return (sys->video_surface != NULL) ? sys->video_surface
+                                        : sys->embed->handle.wl;
+}
+
 static void Prepare(vout_display_t *vd, picture_t *pic,
                     const struct vlc_render_subpicture *subpic,
                     vlc_tick_t date)
@@ -86,7 +108,7 @@ static void Prepare(vout_display_t *vd, picture_t *pic,
     VLC_UNUSED(date);
     vout_display_sys_t *sys = vd->sys;
     struct wl_display *display = sys->embed->display.wl;
-    struct wl_surface *surface = sys->embed->handle.wl;
+    struct wl_surface *surface = PictureSurface(vd);
     struct picture_buffer_t *picbuf = pic->p_sys;
 
     if (picbuf->fd == -1)
@@ -131,6 +153,10 @@ static void Prepare(vout_display_t *vd, picture_t *pic,
     wl_buffer_add_listener(buf, &buffer_cbs, d);
     wl_surface_attach(surface, buf, 0, 0);
     wl_surface_damage(surface, 0, 0, vd->cfg->display.width, vd->cfg->display.height);
+    /* the picture surface is synchronized: its state is cached until the
+     * window surface is committed, when the picture is displayed */
+    if (sys->video_surface != NULL)
+        wl_surface_commit(surface);
     wl_display_flush(display);
 
     sys->active_buffers++;
@@ -144,6 +170,7 @@ static void Display(vout_display_t *vd, picture_t *pic)
     struct wl_display *display = sys->embed->display.wl;
     struct wl_surface *surface = sys->embed->handle.wl;
 
+    /* the state of the picture surface is applied with the window surface */
     wl_surface_commit(surface);
     wl_display_roundtrip_queue(display, sys->eventq);
 
@@ -187,8 +214,20 @@ static int UpdateViewport(vout_display_t *vd)
                     wl_fixed_from_int(fmt.i_y_offset),
                     wl_fixed_from_int(fmt.i_visible_width),
                     wl_fixed_from_int(fmt.i_visible_height));
-    wp_viewport_set_destination(sys->viewport,
-                                vd->place->width, vd->place->height);
+    if (vd->place->width > 0 && vd->place->height > 0)
+        wp_viewport_set_destination(sys->viewport,
+                                    vd->place->width, vd->place->height);
+
+    if (sys->video_subsurface != NULL)
+    {
+        /* the black background fills the window, the pictures are placed
+         * within it, centered when their aspect ratio differs */
+        wl_subsurface_set_position(sys->video_subsurface,
+                                   vd->place->x, vd->place->y);
+        SetBackgroundSize(vd);
+        wl_surface_commit(sys->video_surface);
+        wl_surface_commit(sys->embed->handle.wl);
+    }
     return VLC_SUCCESS;
 }
 
@@ -235,6 +274,11 @@ static void Close(vout_display_t *vd)
     struct wl_display *display = sys->embed->display.wl;
     struct wl_surface *surface = sys->embed->handle.wl;
 
+    if (sys->video_surface != NULL)
+    {
+        wl_surface_attach(sys->video_surface, NULL, 0, 0);
+        wl_surface_commit(sys->video_surface);
+    }
     wl_surface_attach(surface, NULL, 0, 0);
     wl_surface_commit(surface);
 
@@ -247,12 +291,115 @@ static void Close(vout_display_t *vd)
 
     if (sys->viewport != NULL)
         wp_viewport_destroy(sys->viewport);
+    if (sys->background_viewport != NULL)
+        wp_viewport_destroy(sys->background_viewport);
+    if (sys->background != NULL)
+        wl_buffer_destroy(sys->background);
+    if (sys->video_subsurface != NULL)
+        wl_subsurface_destroy(sys->video_subsurface);
+    if (sys->video_surface != NULL)
+        wl_surface_destroy(sys->video_surface);
+    if (sys->subcompositor != NULL)
+        wl_subcompositor_destroy(sys->subcompositor);
     if (sys->viewporter != NULL)
         wp_viewporter_destroy(sys->viewporter);
     wl_shm_destroy(sys->shm);
     wl_display_flush(display);
     wl_event_queue_destroy(sys->eventq);
     free(sys);
+}
+
+/* black buffer, scaled to the window by the background viewport; its size
+ * is a multiple of the integer scales the window surface may have */
+#define BACKGROUND_SIZE 24
+
+static struct wl_buffer *CreateBlackBuffer(vout_display_t *vd)
+{
+    vout_display_sys_t *sys = vd->sys;
+    const size_t stride = 4 * BACKGROUND_SIZE; /* XRGB pixels */
+    const size_t size = stride * BACKGROUND_SIZE;
+
+    int fd = vlc_memfd();
+    if (fd == -1)
+        return NULL;
+
+    struct wl_buffer *buf = NULL;
+    if (ftruncate(fd, size) == 0) /* filled with zeros, which is black */
+    {
+        struct wl_shm_pool *pool = wl_shm_create_pool(sys->shm, fd, size);
+        if (pool != NULL)
+        {
+            buf = wl_shm_pool_create_buffer(pool, 0, BACKGROUND_SIZE,
+                                            BACKGROUND_SIZE, stride,
+                                            WL_SHM_FORMAT_XRGB8888);
+            wl_shm_pool_destroy(pool);
+        }
+    }
+    vlc_close(fd);
+    return buf;
+}
+
+/* the size of the window may not be known yet, a destination size of zero
+ * is a protocol error */
+static void SetBackgroundSize(vout_display_t *vd)
+{
+    vout_display_sys_t *sys = vd->sys;
+
+    if (vd->cfg->display.width > 0 && vd->cfg->display.height > 0)
+        wp_viewport_set_destination(sys->background_viewport,
+                                    vd->cfg->display.width,
+                                    vd->cfg->display.height);
+}
+
+static void CreatePictureSurface(vout_display_t *vd,
+                                 struct vlc_wl_registry *registry)
+{
+    vout_display_sys_t *sys = vd->sys;
+    struct wl_surface *surface = sys->embed->handle.wl;
+
+    /* the buffer transform of the picture surface needs version 2 */
+    uint32_t version = 4;
+    struct wl_compositor *compositor = (struct wl_compositor *)
+        vlc_wl_interface_bind(registry, "wl_compositor",
+                              &wl_compositor_interface, &version);
+    if (compositor == NULL)
+        return;
+    sys->video_surface_version = version;
+
+    sys->background = CreateBlackBuffer(vd);
+    if (sys->background != NULL)
+        sys->video_surface = wl_compositor_create_surface(compositor);
+    wl_compositor_destroy(compositor);
+
+    if (sys->video_surface == NULL)
+        goto error;
+
+    /* synchronized: the pictures are shown when the window surface is
+     * committed, with the black background */
+    sys->video_subsurface = wl_subcompositor_get_subsurface(sys->subcompositor,
+                                                            sys->video_surface,
+                                                            surface);
+    if (sys->video_subsurface == NULL)
+        goto error;
+
+    sys->background_viewport = wp_viewporter_get_viewport(sys->viewporter,
+                                                          surface);
+    wl_surface_attach(surface, sys->background, 0, 0);
+    SetBackgroundSize(vd);
+    wl_surface_commit(surface);
+    return;
+
+error:
+    if (sys->video_surface != NULL)
+    {
+        wl_surface_destroy(sys->video_surface);
+        sys->video_surface = NULL;
+    }
+    if (sys->background != NULL)
+    {
+        wl_buffer_destroy(sys->background);
+        sys->background = NULL;
+    }
 }
 
 static const struct vlc_display_operations ops = {
@@ -280,6 +427,13 @@ static int Open(vout_display_t *vd,
     sys->embed = NULL;
     sys->eventq = NULL;
     sys->shm = NULL;
+    sys->viewport = NULL;
+    sys->subcompositor = NULL;
+    sys->video_surface = NULL;
+    sys->video_subsurface = NULL;
+    sys->background_viewport = NULL;
+    sys->background = NULL;
+    sys->video_surface_version = 0;
     sys->active_buffers = 0;
 
     /* Get window */
@@ -308,11 +462,17 @@ static int Open(vout_display_t *vd,
     wl_shm_add_listener(sys->shm, &shm_cbs, vd);
     wl_display_roundtrip_queue(display, sys->eventq);
 
-    struct wl_surface *surface = sys->embed->handle.wl;
     if (sys->viewporter != NULL)
-        sys->viewport = wp_viewporter_get_viewport(sys->viewporter, surface);
-    else
-        sys->viewport = NULL;
+    {
+        sys->subcompositor = (struct wl_subcompositor *)
+            vlc_wl_interface_bind(registry, "wl_subcompositor",
+                                  &wl_subcompositor_interface, NULL);
+        if (sys->subcompositor != NULL)
+            CreatePictureSurface(vd, registry);
+
+        sys->viewport = wp_viewporter_get_viewport(sys->viewporter,
+                                                   PictureSurface(vd));
+    }
 
     /* Determine our pixel format */
     static const enum wl_output_transform transforms[8] = {
@@ -326,9 +486,12 @@ static int Open(vout_display_t *vd,
         [ORIENT_RIGHT_BOTTOM] = WL_OUTPUT_TRANSFORM_FLIPPED_90,
     };
 
-    if (vlc_wl_interface_get_version(registry, "wl_compositor") >= 2)
+    const uint_fast32_t surface_version = (sys->video_surface != NULL)
+        ? sys->video_surface_version
+        : vlc_wl_interface_get_version(registry, "wl_compositor");
+    if (surface_version >= 2)
     {
-        wl_surface_set_buffer_transform(surface,
+        wl_surface_set_buffer_transform(PictureSurface(vd),
                                         transforms[fmtp->orientation]);
     }
     else
