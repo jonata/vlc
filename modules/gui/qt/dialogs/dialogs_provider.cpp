@@ -303,6 +303,17 @@ const QEvent::Type DialogEvent::DialogEvent_Type =
 
 void DialogsProvider::prefsDialog()
 {
+    // the interface shows its own preferences
+    if (p_intf->p_mi)
+    {
+        emit showPreferencesDialog();
+        return;
+    }
+    advancedPrefsDialog();
+}
+
+void DialogsProvider::advancedPrefsDialog()
+{
     if (Q_LIKELY(!m_prefsDialog))
     {
         m_prefsDialog = new PrefsDialog( nullptr, p_intf );

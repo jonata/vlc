@@ -417,6 +417,26 @@ Item {
         }
 
         Loader {
+            id: preferencesLoader
+
+            active: false
+            sourceComponent: PreferencesDialog { }
+
+            onLoaded: item.open()
+
+            Connections {
+                target: DialogsProvider
+
+                function onShowPreferencesDialog() {
+                    if (preferencesLoader.item)
+                        preferencesLoader.item.open()
+                    else
+                        preferencesLoader.active = true
+                }
+            }
+        }
+
+        Loader {
             active: {
                 const windowVisibility = MainCtx.intfMainWindow.visibility
                 return MainCtx.clientSideDecoration && !MainCtx.platformHandlesResizeWithCSD()

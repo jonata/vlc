@@ -36,6 +36,8 @@ T.Popup {
     property real preferredWidth: VLCStyle.dp(713, VLCStyle.scale)
 
     default property alias content: body.data
+    // items of the footer, after the cancel button
+    property alias footerContent: footerExtra.data
 
     signal accepted()
 
@@ -120,6 +122,12 @@ T.Popup {
             Widgets.DialogButton {
                 text: qsTr("Cancel")
                 onClicked: root.close()
+            }
+
+            RowLayout {
+                id: footerExtra
+
+                spacing: VLCStyle.margin_small
             }
 
             Item { Layout.fillWidth: true }

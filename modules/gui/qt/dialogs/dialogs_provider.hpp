@@ -221,6 +221,8 @@ public slots:
                                               const QMessageBox::StandardButton defaultButton = QMessageBox::NoButton,
                                               const QMessageBox::Icon icon = QMessageBox::NoIcon);
     void prefsDialog();
+    /// the preferences with every option, by module
+    void advancedPrefsDialog();
     void firstRunDialog();
     void extendedDialog();
     void synchroDialog();
@@ -297,6 +299,8 @@ signals:
     /// asks the interface for a dialog to open media: "network",
     /// "clipboard", "capture", "convert" or "stream"
     void showOpenMediaDialog(const QString &kind);
+    /// asks the interface for its preferences dialog
+    void showPreferencesDialog();
 
     //visiblity signal
     void openDialogVisibleChanged();

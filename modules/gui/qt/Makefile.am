@@ -1142,6 +1142,7 @@ libqml_module_maininterface_a_QML = \
 	maininterface/qml/LibraryAddressBar.qml \
 	maininterface/qml/KeyboardShortcutsDialog.qml \
 	maininterface/qml/OnboardingDialog.qml \
+	maininterface/qml/PreferencesDialog.qml \
 	maininterface/qml/OpenNetworkDialog.qml \
 	maininterface/qml/CaptureDialog.qml \
 	maininterface/qml/ConvertDialog.qml \
