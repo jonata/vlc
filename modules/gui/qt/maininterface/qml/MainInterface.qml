@@ -356,6 +356,45 @@ Item {
             }
         }
 
+        // dialogs to open media, asked for by the menus
+        Loader {
+            id: openMediaLoader
+
+            property string kind
+
+            active: false
+
+            sourceComponent: {
+                switch (kind) {
+                case "capture": return captureComponent
+                case "convert": return convertComponent
+                case "stream": return streamComponent
+                default: return networkComponent
+                }
+            }
+
+            onLoaded: item.open()
+
+            Component { id: networkComponent; OpenNetworkDialog { fromClipboard: openMediaLoader.kind === "clipboard" } }
+            Component { id: captureComponent; CaptureDialog { } }
+            Component { id: convertComponent; ConvertDialog { } }
+            Component { id: streamComponent; StreamToDeviceDialog { } }
+
+            Connections {
+                target: DialogsProvider
+
+                function onShowOpenMediaDialog(kind) {
+                    if (openMediaLoader.active && openMediaLoader.kind === kind) {
+                        openMediaLoader.item.open()
+                        return
+                    }
+                    openMediaLoader.active = false
+                    openMediaLoader.kind = kind
+                    openMediaLoader.active = true
+                }
+            }
+        }
+
         // created the first time it is asked for
         Loader {
             id: keyboardShortcutsLoader

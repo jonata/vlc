@@ -294,6 +294,9 @@ signals:
     void releaseMouseEvents();
     void showToolbarEditorDialog();
     void showKeyboardShortcutsDialog();
+    /// asks the interface for a dialog to open media: "network",
+    /// "clipboard", "capture", "convert" or "stream"
+    void showOpenMediaDialog(const QString &kind);
 
     //visiblity signal
     void openDialogVisibleChanged();

@@ -370,13 +370,25 @@ void VLCMenuBar::FileMenu(qt_intf_t *p_intf, QMenu *menu)
         ":/menu/folder.svg", &DialogsProvider::PLOpenDir, "Ctrl+F" );
     addDPStaticEntry( menu, qtr( "Open &Disc..." ),
         ":/menu/disc.svg", &DialogsProvider::openDiscDialog, "Ctrl+D" );
-    addDPStaticEntry( menu, qtr( "Open &Network Stream..." ),
-        ":/menu/network.svg", &DialogsProvider::openNetDialog, "Ctrl+N" );
-    addDPStaticEntry( menu, qtr( "Open &Capture Device..." ),
-        ":/menu/capture-card.svg", &DialogsProvider::openCaptureDialog, "Ctrl+C" );
-
-    addDPStaticEntry( menu, qtr( "Open &Location from clipboard" ),
-                      NULL, &DialogsProvider::openUrlDialog, "Ctrl+V" );
+    // the main interface has its own dialogs to open media
+    if( mi )
+    {
+        addDPStaticEntry( menu, qtr( "Open &Network Stream..." ),
+            ":/menu/network.svg", []() { emit THEDP->showOpenMediaDialog( QStringLiteral( "network" ) ); }, "Ctrl+N" );
+        addDPStaticEntry( menu, qtr( "Open &Capture Device..." ),
+            ":/menu/capture-card.svg", []() { emit THEDP->showOpenMediaDialog( QStringLiteral( "capture" ) ); }, "Ctrl+C" );
+        addDPStaticEntry( menu, qtr( "Open &Location from clipboard" ),
+            NULL, []() { emit THEDP->showOpenMediaDialog( QStringLiteral( "clipboard" ) ); }, "Ctrl+V" );
+    }
+    else
+    {
+        addDPStaticEntry( menu, qtr( "Open &Network Stream..." ),
+            ":/menu/network.svg", &DialogsProvider::openNetDialog, "Ctrl+N" );
+        addDPStaticEntry( menu, qtr( "Open &Capture Device..." ),
+            ":/menu/capture-card.svg", &DialogsProvider::openCaptureDialog, "Ctrl+C" );
+        addDPStaticEntry( menu, qtr( "Open &Location from clipboard" ),
+                          NULL, &DialogsProvider::openUrlDialog, "Ctrl+V" );
+    }
 
     if( mi && var_InheritBool( p_intf, "save-recentplay" ) && mi->hasMediaLibrary() )
     {
@@ -394,10 +406,23 @@ void VLCMenuBar::FileMenu(qt_intf_t *p_intf, QMenu *menu)
     addDPStaticEntry( menu, qfut( I_PL_SAVE ), "", &DialogsProvider::savePlayingToPlaylist,
         "Ctrl+Y" );
 
-    addDPStaticEntry( menu, qtr( "Conve&rt / Save..." ), "",
-        &DialogsProvider::openAndTranscodingDialogs, "Ctrl+R" );
-    addDPStaticEntry( menu, qtr( "&Stream..." ),
-        ":/menu/stream.svg", &DialogsProvider::openAndStreamingDialogs, "Ctrl+S" );
+    if( mi )
+    {
+        addDPStaticEntry( menu, qtr( "Conve&rt / Save..." ), "",
+            []() { emit THEDP->showOpenMediaDialog( QStringLiteral( "convert" ) ); }, "Ctrl+R" );
+        addDPStaticEntry( menu, qtr( "&Stream to a Device..." ),
+            ":/menu/stream.svg", []() { emit THEDP->showOpenMediaDialog( QStringLiteral( "stream" ) ); }, "Ctrl+S" );
+        // the dialog with all the options of opening, converting and streaming
+        addDPStaticEntry( menu, qtr( "Open Media (&Advanced)..." ), "",
+            []() { THEDP->openDialog(); } );
+    }
+    else
+    {
+        addDPStaticEntry( menu, qtr( "Conve&rt / Save..." ), "",
+            &DialogsProvider::openAndTranscodingDialogs, "Ctrl+R" );
+        addDPStaticEntry( menu, qtr( "&Stream..." ),
+            ":/menu/stream.svg", &DialogsProvider::openAndStreamingDialogs, "Ctrl+S" );
+    }
     menu->addSeparator();
 
     action = menu->addAction( qtr( "Quit at the end of play queue" ), [playlist = THEMPL](bool checked){
