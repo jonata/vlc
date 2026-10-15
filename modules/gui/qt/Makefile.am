@@ -1455,6 +1455,7 @@ libqml_module_widgets_a_QML = \
 	widgets/qml/ButtonExt.qml \
 	widgets/qml/CardDialog.qml \
 	widgets/qml/DialogButton.qml \
+	widgets/qml/DialogComboBox.qml \
 	widgets/qml/DialogSectionTitle.qml \
 	widgets/qml/TableColumns.qml \
 	widgets/qml/TextFieldExt.qml \
