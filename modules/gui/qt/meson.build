@@ -657,6 +657,7 @@ qml_modules += {
     'outdir' : 'VLC/MainInterface',
     'sources': files(
         'maininterface/qml/LocalTopbar.qml',
+        'maininterface/qml/LibraryAddressBar.qml',
         'maininterface/qml/MenuTopbar.qml',
         'maininterface/qml/MainInterface.qml',
         'maininterface/qml/MainViewLoader.qml',
@@ -714,6 +715,7 @@ qml_modules += {
         'medialibrary/qml/NewPlaylistDialog.qml',
         'medialibrary/qml/NetworkStreamsDisplay.qml',
         'medialibrary/qml/AddStreamDialog.qml',
+        'medialibrary/qml/LibraryAddMenu.qml',
         'medialibrary/qml/MLContextMenu.qml',
         'medialibrary/qml/MLDragItem.qml',
         'medialibrary/qml/MLTableColumns.qml',

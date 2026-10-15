@@ -1129,6 +1129,7 @@ libqml_module_maininterface_a_CPPFLAGS = $(libqt_plugin_la_CPPFLAGS)
 libqml_module_maininterface_a_QML = \
 	maininterface/qml/MenuTopbar.qml \
 	maininterface/qml/LocalTopbar.qml \
+	maininterface/qml/LibraryAddressBar.qml \
 	maininterface/qml/MainInterface.qml \
 	maininterface/qml/MainViewLoader.qml \
 	maininterface/qml/MainDisplay.qml \
@@ -1192,6 +1193,7 @@ libqml_module_medialibrary_a_QML = \
 	medialibrary/qml/NewPlaylistDialog.qml \
 	medialibrary/qml/NetworkStreamsDisplay.qml \
 	medialibrary/qml/AddStreamDialog.qml \
+	medialibrary/qml/LibraryAddMenu.qml \
 	medialibrary/qml/MLContextMenu.qml \
 	medialibrary/qml/MLDragItem.qml \
 	medialibrary/qml/MLTableColumns.qml \

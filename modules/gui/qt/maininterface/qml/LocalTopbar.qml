@@ -143,6 +143,32 @@ T.ToolBar {
 
                     Navigation.parentItem: navigationButtons
                     Navigation.leftItem: navigationVisibilty
+                    Navigation.rightItem: historyNext.enabled ? historyNext : playlistBtn
+                }
+
+                Widgets.IconToolButton {
+                    id: historyNext
+
+                    font.pixelSize: VLCStyle.icon_banner
+                    text: VLCIcons.back
+                    description: qsTr("Next")
+
+                    // the back icon, pointing forward
+                    contentItem.rotation: 180
+
+                    height: VLCStyle.bannerButton_height
+                    width: VLCStyle.bannerButton_width
+
+                    onClicked: History.next()
+                    enabled: !History.nextEmpty
+
+                    onEnabledChanged: {
+                        if (historyNext.activeFocus)
+                            navigationVisibilty.focus = true
+                    }
+
+                    Navigation.parentItem: navigationButtons
+                    Navigation.leftItem: historyBack
                     Navigation.rightItem: playlistBtn
                 }
 
@@ -152,6 +178,10 @@ T.ToolBar {
                     sourceSize.width: VLCStyle.bannerButton_height
                     sourceSize.height: VLCStyle.bannerButton_height
                     color: theme.accent
+                }
+
+                LibraryAddressBar {
+                    anchors.verticalCenter: parent.verticalCenter
                 }
             }
         }
@@ -182,6 +212,12 @@ T.ToolBar {
 
                 Navigation.parentItem: root
                 Navigation.leftItem: navigationButtons
+
+                Loader {
+                    anchors.verticalCenter: parent.verticalCenter
+                    active: MainCtx.mediaLibraryAvailable
+                    source: "qrc:///qt/qml/VLC/MediaLibrary/LibraryAddMenu.qml"
+                }
 
                 PlaylistPane.PlaylistToggleButton {
                     id: playlistBtn
