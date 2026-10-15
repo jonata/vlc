@@ -40,6 +40,9 @@ FocusScope {
     // the remaining space (used for the inline seek bar)
     property Item centerItem: null
 
+    // the controls are moved, added and removed by dragging them
+    property bool editMode: false
+
     readonly property PlayerControlbarModel model: {
         if (!!MainCtx.controlbarProfileModel.currentModel)
             return MainCtx.controlbarProfileModel.currentModel.getModel(identifier)
@@ -96,11 +99,16 @@ FocusScope {
 
             ControlRepeater {
                 id: leftRepeater
+
+                editMode: playerControlLayout.editMode
+                editModel: playerControlLayout.model.left
                 model: ControlListFilter {
                     sourceModel: playerControlLayout.model.left
 
-                    player: Player
-                    ctx: MainCtx
+                    // every control is shown while editing, so that the rows
+                    // of the filter are those of the model
+                    player: playerControlLayout.editMode ? null : Player
+                    ctx: playerControlLayout.editMode ? null : MainCtx
                 }
 
                 Navigation.parentItem: playerControlLayout
@@ -122,16 +130,26 @@ FocusScope {
                 }
             }
 
+            EditorDropZone {
+                visible: playerControlLayout.editMode
+                targetModel: playerControlLayout.model.left
+            }
+
             // center controls are only shown here when the center is taken by centerItem
             ControlRepeater {
                 id: centerRepeater
+
+                editMode: playerControlLayout.editMode
+                editModel: playerControlLayout.model.center
                 model: playerControlLayout.centerItem ? _centerFilter : null
 
                 readonly property ControlListFilter _centerFilter: ControlListFilter {
                     sourceModel: playerControlLayout.model.center
 
-                    player: Player
-                    ctx: MainCtx
+                    // every control is shown while editing, so that the rows
+                    // of the filter are those of the model
+                    player: playerControlLayout.editMode ? null : Player
+                    ctx: playerControlLayout.editMode ? null : MainCtx
                 }
 
                 Navigation.parentItem: playerControlLayout
@@ -190,11 +208,16 @@ FocusScope {
 
             ControlRepeater {
                 id: rightRepeater
+
+                editMode: playerControlLayout.editMode
+                editModel: playerControlLayout.model.right
                 model: ControlListFilter {
                     sourceModel: playerControlLayout.model.right
 
-                    player: Player
-                    ctx: MainCtx
+                    // every control is shown while editing, so that the rows
+                    // of the filter are those of the model
+                    player: playerControlLayout.editMode ? null : Player
+                    ctx: playerControlLayout.editMode ? null : MainCtx
                 }
 
                 Navigation.parentItem: playerControlLayout
@@ -214,6 +237,11 @@ FocusScope {
                     menuOpened.connect(playerControlLayout.menuOpened)
                     playerControlLayout.forceUnlock.connect(rightRepeater.forceUnlock)
                 }
+            }
+
+            EditorDropZone {
+                visible: playerControlLayout.editMode
+                targetModel: playerControlLayout.model.right
             }
 
         }
@@ -241,11 +269,14 @@ FocusScope {
         sourceComponent: ControlLayout {
             id: leftControlLayout
 
+            editMode: playerControlLayout.editMode
+            editModel: playerControlLayout.model.left
+
             model: ControlListFilter {
                 sourceModel: playerControlLayout.model.left
 
-                player: Player
-                ctx: MainCtx
+                player: playerControlLayout.editMode ? null : Player
+                ctx: playerControlLayout.editMode ? null : MainCtx
             }
 
             alignment: (Qt.AlignVCenter | Qt.AlignLeft)
@@ -306,11 +337,14 @@ FocusScope {
         sourceComponent: ControlLayout {
             id: centerControlLayout
 
+            editMode: playerControlLayout.editMode
+            editModel: playerControlLayout.model.center
+
             model: ControlListFilter {
                 sourceModel: playerControlLayout.model.center
 
-                player: Player
-                ctx: MainCtx
+                player: playerControlLayout.editMode ? null : Player
+                ctx: playerControlLayout.editMode ? null : MainCtx
             }
 
             focus: true
@@ -350,11 +384,14 @@ FocusScope {
         sourceComponent: ControlLayout {
             id: rightControlLayout
 
+            editMode: playerControlLayout.editMode
+            editModel: playerControlLayout.model.right
+
             model: ControlListFilter {
                 sourceModel: playerControlLayout.model.right
 
-                player: Player
-                ctx: MainCtx
+                player: playerControlLayout.editMode ? null : Player
+                ctx: playerControlLayout.editMode ? null : MainCtx
             }
 
             alignment: (Qt.AlignVCenter | Qt.AlignRight)

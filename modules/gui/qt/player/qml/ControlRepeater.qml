@@ -19,6 +19,8 @@ import QtQuick
 import QtQuick.Layouts
 
 import VLC.MainInterface
+import VLC.Style
+import VLC.Widgets as Widgets
 
 Repeater {
     id: repeater
@@ -27,6 +29,11 @@ Repeater {
 
     property real availableWidth: Number.MAX_VALUE
     property real availableHeight: Number.MAX_VALUE
+
+    // while the control bar is customized, the controls are moved by
+    // dragging them, in editModel (the ControlListModel of the side)
+    property bool editMode: false
+    property var editModel: null
 
     signal requestLockUnlockAutoHide(bool lock)
     signal menuOpened(var menu)
@@ -64,6 +71,115 @@ Repeater {
 
         Layout.alignment: repeater.alignment
 
+        // the controls are not used while they are moved
+        Binding {
+            target: loader.item
+            property: "enabled"
+            value: false
+            when: repeater.editMode && loader.status === Loader.Ready
+        }
+
+        // known when the control is loaded, reading the property in the
+        // binding below would make it depend on itself
+        property bool _hasPaintOnly: false
+
+        // some controls, such as the spacers, are only drawn in this mode
+        Binding {
+            target: loader.item
+            property: "paintOnly"
+            value: true
+            when: repeater.editMode && loader._hasPaintOnly
+        }
+
+        Item {
+            id: editHandle
+
+            // what a drop needs to know about the dragged control
+            readonly property int controlId: model.id
+            readonly property var dndModel: repeater.editModel
+            readonly property int dndIndex: index
+            readonly property bool fromPalette: false
+
+            width: loader.width
+            height: loader.height
+
+            visible: repeater.editMode
+            z: 10
+
+            Drag.active: dragArea.drag.active
+            Drag.keys: ["vlc-control"]
+            Drag.source: editHandle
+            Drag.hotSpot.x: width / 2
+            Drag.hotSpot.y: height / 2
+
+            readonly property ColorContext colorContext: ColorContext {
+                id: editTheme
+                colorSet: ColorContext.Window
+            }
+
+            // a copy of the control follows the pointer
+            ShaderEffectSource {
+                anchors.fill: parent
+                visible: dragArea.drag.active
+                sourceItem: dragArea.drag.active ? loader.item : null
+                hideSource: dragArea.drag.active
+                live: false
+            }
+
+            Widgets.DashedRectangle {
+                anchors.fill: parent
+                anchors.margins: -VLCStyle.margin_xxxsmall
+                color: editTheme.fg.secondary
+                opacity: 0.7
+                radius: VLCStyle.dp(4, VLCStyle.scale)
+            }
+
+            // where the dropped control goes
+            Rectangle {
+                x: dropArea.before ? -VLCStyle.margin_xxsmall - width / 2 : parent.width + VLCStyle.margin_xxsmall - width / 2
+                width: VLCStyle.dp(2, VLCStyle.scale)
+                height: parent.height
+                visible: dropArea.containsDrag && dropArea.drag.source !== editHandle
+                color: editTheme.accent
+            }
+
+            MouseArea {
+                id: dragArea
+
+                anchors.fill: parent
+
+                cursorShape: drag.active ? Qt.ClosedHandCursor : Qt.OpenHandCursor
+                drag.target: editHandle
+                drag.threshold: VLCStyle.dp(4, VLCStyle.scale)
+
+                onReleased: {
+                    if (drag.active)
+                        editHandle.Drag.drop()
+                    // back in place, the model updates the bar
+                    editHandle.x = 0
+                    editHandle.y = 0
+                }
+            }
+
+            DropArea {
+                id: dropArea
+
+                anchors.fill: parent
+
+                keys: ["vlc-control"]
+
+                // the control goes before or after this one, after the side of the drop
+                readonly property bool before: drag.x < width / 2
+
+                onDropped: (drop) => {
+                    if (drop.source === editHandle || !repeater.editModel)
+                        return
+                    ControlEditing.applyDrop(repeater.editModel, index + (before ? 0 : 1), drop.source)
+                    drop.accept(Qt.MoveAction)
+                }
+            }
+        }
+
         Binding on visible {
             delayed: true // this is important
             when: condition
@@ -93,6 +209,8 @@ Repeater {
         }
 
         onLoaded: {
+            _hasPaintOnly = (item.paintOnly !== undefined)
+
             // control should not request focus if they are not enabled:
             item.focus = Qt.binding(function() { return item.enabled && item.visible })
 

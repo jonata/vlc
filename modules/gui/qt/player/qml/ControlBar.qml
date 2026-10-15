@@ -54,6 +54,9 @@ T.Pane {
     property real bookmarksHeight: VLCStyle.controlBarBookmarksHeight
     property bool showRemainingTime: true
 
+    // the controls are customized (see PlayerControlLayout)
+    property bool editMode: false
+
     readonly property bool _inline: (textPosition === ControlBar.TimeTextPosition.Inline)
 
     // the single row layout always shows the hours, like in the design
@@ -422,6 +425,7 @@ T.Pane {
             Layout.rightMargin: Layout.leftMargin
 
             identifier: root.identifier
+            editMode: root.editMode
 
             centerItem: root._inline ? inlineRow : null
 

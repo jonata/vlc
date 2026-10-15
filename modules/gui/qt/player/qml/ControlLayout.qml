@@ -95,6 +95,10 @@ FocusScope {
 
     property alias model: repeater.model
 
+    // see ControlRepeater
+    property alias editMode: repeater.editMode
+    property alias editModel: repeater.editModel
+
     property alias spacing: rowLayout.spacing
 
     // Signals
@@ -164,6 +168,11 @@ FocusScope {
                 menuOpened.connect(controlLayout.menuOpened)
                 controlLayout.forceUnlock.connect(repeater.forceUnlock)
             }
+        }
+
+        EditorDropZone {
+            visible: repeater.editMode
+            targetModel: repeater.editModel
         }
 
         Item {
