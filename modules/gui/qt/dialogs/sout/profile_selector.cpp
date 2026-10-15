@@ -128,6 +128,27 @@ inline void VLCProfileSelector::fillProfilesCombo()
 
 }
 
+QStringList VLCProfileSelector::profileNames() const
+{
+    QStringList names;
+    for( int i = 0; i < profileBox->count(); i++ )
+        names << profileBox->itemText( i );
+    return names;
+}
+
+int VLCProfileSelector::currentProfile() const
+{
+    return profileBox->currentIndex();
+}
+
+void VLCProfileSelector::selectProfile( int i )
+{
+    if( i < 0 || i >= profileBox->count() )
+        return;
+    profileBox->setCurrentIndex( i );
+    updateOptions( i );
+}
+
 void VLCProfileSelector::newProfile()
 {
     editProfilePrivate( "", "" );

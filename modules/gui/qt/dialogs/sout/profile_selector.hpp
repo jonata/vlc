@@ -46,6 +46,12 @@ public:
     ~VLCProfileSelector();
     QString getMux() { return mux; }
     SoutChain getTranscode() { return transcode; }
+
+    /// names of the profiles, for an interface listing them
+    QStringList profileNames() const;
+    int currentProfile() const;
+    /// selects a profile, which updates the mux and the transcoding chain
+    void selectProfile( int i );
 private:
     QComboBox *profileBox;
     void fillProfilesCombo();
