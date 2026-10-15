@@ -13,6 +13,19 @@ bool NavigationHistory::isPreviousEmpty()
     return m_history.size() <= 1;
 }
 
+bool NavigationHistory::isNextEmpty() const
+{
+    return m_next.empty();
+}
+
+void NavigationHistory::clearNext()
+{
+    if (m_next.empty())
+        return;
+    m_next.clear();
+    emit nextEmptyChanged(true);
+}
+
 void NavigationHistory::push(QStringList path, const QVariantMap& properties, Qt::FocusReason focusReason)
 {
     auto prop = std::make_unique<QQmlPropertyMap>();
@@ -20,6 +33,7 @@ void NavigationHistory::push(QStringList path, const QVariantMap& properties, Qt
         prop->insert((*it).first, (*it).second);
 
     m_history.emplace_back(path, std::move(prop));
+    clearNext();
 
     updateCurrent();
 
@@ -32,6 +46,7 @@ void NavigationHistory::push(QStringList path, const QVariantMap& properties, Qt
 void NavigationHistory::push(QStringList path, Qt::FocusReason focusReason)
 {
     m_history.emplace_back(path, std::make_unique<QQmlPropertyMap>());
+    clearNext();
 
     updateCurrent();
 
@@ -139,7 +154,12 @@ void NavigationHistory::previous(Qt::FocusReason reason)
     if (m_history.size() == 1)
         return;
 
+    // the page can be returned to with next()
+    const bool wasNextEmpty = m_next.empty();
+    m_next.push_back(std::move(m_history.back()));
     m_history.pop_back();
+    if (wasNextEmpty)
+        emit nextEmptyChanged(false);
 
     while (!isNodeValid(*m_history.back().second)) {
         m_history.pop_back();
@@ -149,6 +169,23 @@ void NavigationHistory::previous(Qt::FocusReason reason)
 
     if (m_history.size() == 1)
         emit previousEmptyChanged(true);
+
+    updateCurrent();
+    emit navigate(reason);
+}
+
+void NavigationHistory::next(Qt::FocusReason reason)
+{
+    if (m_next.empty())
+        return;
+
+    m_history.push_back(std::move(m_next.back()));
+    m_next.pop_back();
+
+    if (m_history.size() == 2)
+        emit previousEmptyChanged(false);
+    if (m_next.empty())
+        emit nextEmptyChanged(true);
 
     updateCurrent();
     emit navigate(reason);
