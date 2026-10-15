@@ -35,7 +35,8 @@ class QSettings;
  * - title: shown in the side navigation
  * - icon: an icon of the icon font
  * - path: path of the page in the navigation history
- * - props: properties of the page, the "parentId" is a serialized MLItemId
+ * - props: properties of the page, the "parentId" is a serialized MLItemId,
+ *   a "folderUrl" is the address of a folder to browse
  */
 class PinnedItems : public QObject
 {

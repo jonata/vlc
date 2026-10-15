@@ -25,6 +25,9 @@
 #include <QSettings>
 
 #include "medialibrary/mlqmltypes.hpp"
+#include "network/networkmediamodel.hpp"
+
+#include <vlc_media_source.h>
 
 namespace {
 
@@ -87,6 +90,33 @@ QVariantMap PinnedItems::pageProps(int index) const
     const auto parentId = props.find(QStringLiteral("parentId"));
     if (parentId != props.end())
         *parentId = QVariant::fromValue(MLItemId::fromString(parentId->toString()));
+
+    // a folder that is browsed is saved as its address, its tree is built
+    // again, as for the folders of the user (see StandardPathModel)
+    const auto folderUrl = props.find(QStringLiteral("folderUrl"));
+    if (folderUrl != props.end())
+    {
+        const QUrl url = folderUrl->toUrl();
+        const QString title = m_items.at(index).toMap().value(QStringLiteral("title")).toString();
+        props.erase(folderUrl);
+
+        input_item_t *item = input_item_NewDirectory(qtu(url.toString(QUrl::FullyEncoded)), qtu(title),
+                                                     url.isLocalFile() ? ITEM_LOCAL : ITEM_NET);
+        if (item)
+        {
+            MediaTreePtr tree(vlc_media_tree_New(), false);
+            if (tree)
+            {
+                MediaTreeLocker lock{tree};
+                vlc_media_tree_Add(tree.get(), &tree->root, item);
+            }
+            if (tree)
+                props.insert(QStringLiteral("tree"),
+                             QVariant::fromValue(NetworkTreeItem(tree, SharedInputItem(item, false))));
+            else
+                input_item_Release(item);
+        }
+    }
 
     return props;
 }

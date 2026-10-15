@@ -1036,6 +1036,41 @@ void NetworkMediaContextMenu::popup(const QModelIndexList& selected, QPoint pos)
         });
     }
 
+    // a folder can be pinned to the side navigation
+    if (selected.count() == 1)
+    {
+        const QModelIndex index = m_model->index(selected.first().row());
+        const int type = m_model->data(index, NetworkMediaModel::NETWORK_BASE_TYPE).toInt();
+        const QUrl url = m_model->data(index, NetworkMediaModel::NETWORK_BASE_MRL).toUrl();
+
+        if ((type == NetworkMediaModel::TYPE_DIRECTORY || type == NetworkMediaModel::TYPE_NODE) && url.isValid())
+        {
+            const QString name = m_model->data(index, NetworkMediaModel::NETWORK_BASE_NAME).toString();
+            const QString key = QStringLiteral("folder:") + url.toString();
+
+            PinnedItems *pinned = m_ctx->getPinnedItems();
+
+            menu->addSeparator();
+
+            if (pinned->isPinned(key))
+            {
+                action = menu->addAction(qtr("Unpin from Sidebar"));
+                connect(action, &QAction::triggered, pinned, [pinned, key]() {
+                    pinned->unpin(key);
+                });
+            }
+            else
+            {
+                action = menu->addAction(qtr("Pin to Sidebar"));
+                connect(action, &QAction::triggered, pinned, [pinned, key, url, name]() {
+                    pinned->pin(key, name, VLCIcons::folder,
+                                { QStringLiteral("network"), QStringLiteral("browse") },
+                                { { QStringLiteral("folderUrl"), url } });
+                });
+            }
+        }
+    }
+
     menu->popup(pos);
 }
 
