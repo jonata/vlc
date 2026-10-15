@@ -810,10 +810,13 @@ qml_modules += {
        'player/qml/TracksListPage.qml',
        'player/qml/ControlLayout.qml',
        'player/qml/ControlRepeater.qml',
+       'player/qml/EditorDropZone.qml',
+       'player/qml/CustomizePlayerCard.qml',
        'player/qml/NavigationBox.qml',
    ),
    'singletons' : files(
        'player/qml/PlayerControlbarControls.qml',
+       'player/qml/ControlEditing.qml',
    )
 }
 
@@ -983,6 +986,7 @@ qml_modules += {
         'widgets/qml/DialogButton.qml',
         'widgets/qml/DialogComboBox.qml',
         'widgets/qml/DialogSectionTitle.qml',
+        'widgets/qml/DashedRectangle.qml',
         'widgets/qml/TableColumns.qml',
         'widgets/qml/TextFieldExt.qml',
         'widgets/qml/TextToolButton.qml',

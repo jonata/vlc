@@ -69,6 +69,11 @@ FocusScope {
     property bool compactLibraryVisible: false
     property bool subtitleDialogVisible: false
 
+    // the control bar is customized over the player
+    property bool customizing: false
+
+    onCustomizingChanged: lockUnlockAutoHide(customizing)
+
     function toggleSettingsSidebar() {
         settingsSidebarVisible = !settingsSidebarVisible
     }
@@ -975,6 +980,33 @@ FocusScope {
         border.color: windowTheme.bg.primary
     }
 
+    Connections {
+        target: DialogsProvider
+
+        function onShowToolbarEditorDialog() {
+            customizeCard.start()
+            rootPlayer.customizing = true
+            customizeCard.forceActiveFocus()
+        }
+    }
+
+    // over the video, the control bar stays visible to be customized
+    CustomizePlayerCard {
+        id: customizeCard
+
+        anchors.centerIn: playerSpecializationLoader
+
+        width: Math.min(implicitWidth, playerSpecializationLoader.width - 2 * VLCStyle.margin_large)
+        height: Math.min(implicitHeight, playerSpecializationLoader.height - 2 * VLCStyle.margin_large)
+
+        visible: rootPlayer.customizing
+        enabled: visible
+
+        z: 5
+
+        onCloseRequested: rootPlayer.customizing = false
+    }
+
     SubtitleDialog {
         anchors.fill: parent
 
@@ -1353,6 +1385,8 @@ FocusScope {
         z: 10
         bgContent: rootPlayer
 
+        handlesToolbarEditor: false
+
         anchors {
             bottom: controlBar.visible ? controlBar.top : rootPlayer.bottom
             left: parent.left
@@ -1445,6 +1479,8 @@ FocusScope {
 
     ControlBar {
         id: controlBar
+
+        editMode: rootPlayer.customizing
 
         anchors {
             bottom: parent.bottom

@@ -1290,10 +1290,13 @@ libqml_module_player_a_QML = \
 	player/qml/TracksListPage.qml \
 	player/qml/ControlLayout.qml \
 	player/qml/ControlRepeater.qml \
+	player/qml/EditorDropZone.qml \
+	player/qml/CustomizePlayerCard.qml \
 	player/qml/NavigationBox.qml
 
 libqml_module_player_a_Singleton_QML = \
-	player/qml/PlayerControlbarControls.qml
+	player/qml/PlayerControlbarControls.qml \
+	player/qml/ControlEditing.qml
 libqml_module_player_a_SOURCES = $(QML_MODULE_player_SRC)
 nodist_libqml_module_player_a_SOURCES = player/qmlassets.cpp $(QML_MODULE_player_NODIST_EXTRA)
 QML_MODULE_LIBS += libqml_module_player.a
@@ -1470,6 +1473,7 @@ libqml_module_widgets_a_QML = \
 	widgets/qml/DialogButton.qml \
 	widgets/qml/DialogComboBox.qml \
 	widgets/qml/DialogSectionTitle.qml \
+	widgets/qml/DashedRectangle.qml \
 	widgets/qml/TableColumns.qml \
 	widgets/qml/TextFieldExt.qml \
 	widgets/qml/TextToolButton.qml \

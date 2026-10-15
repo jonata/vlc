@@ -32,6 +32,9 @@ Item {
     // Properties
     //---------------------------------------------------------------------------------------------
 
+    // whether the toolbar editor dialog is opened from here
+    property bool handlesToolbarEditor: true
+
     property Item bgContent: null
 
     //---------------------------------------------------------------------------------------------
@@ -601,6 +604,8 @@ Item {
 
         Connections {
             target: DialogsProvider
+            // the player customizes its control bar itself
+            enabled: root.handlesToolbarEditor
 
             function onShowToolbarEditorDialog() {
                 toolbarEditorDialogLoader.active = true
