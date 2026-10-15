@@ -39,11 +39,6 @@ T.Popup {
 
     signal accepted()
 
-    readonly property ColorContext colorContext: ColorContext {
-        id: theme
-        colorSet: ColorContext.Window
-    }
-
     parent: T.Overlay.overlay
     anchors.centerIn: parent
 
@@ -68,6 +63,14 @@ T.Popup {
     }
 
     contentItem: ColumnLayout {
+        // the popup is outside of the items of the window, the colors are
+        // given to its content, for the widgets in it
+        readonly property ColorContext colorContext: ColorContext {
+            id: theme
+            palette: VLCStyle.palette
+            colorSet: ColorContext.Window
+        }
+
         spacing: 0
 
         // title

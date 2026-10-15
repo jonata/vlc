@@ -55,8 +55,10 @@ Widgets.CardDialog {
             root.streamsAdded(_urls)
     }
 
+    // the dialog is outside of the items of the window, see CardDialog
     readonly property ColorContext _theme: ColorContext {
         id: theme
+        palette: VLCStyle.palette
         colorSet: ColorContext.Window
     }
 
