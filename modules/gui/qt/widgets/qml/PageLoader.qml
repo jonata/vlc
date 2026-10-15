@@ -91,12 +91,24 @@ StackViewExt {
                     let pageProp = {
                         pagePrefix:[...pagePrefix, head]
                     }
-                    for (const key of properties.keys()) {
-                        pageProp[key] = properties[key]
+                    // the properties are for the last page of the path, the
+                    // pages before it only get those they have, see _reloadPage
+                    const last = (path.length === 1)
+                    if (last) {
+                        for (const key of properties.keys()) {
+                            pageProp[key] = properties[key]
+                        }
                     }
 
                     History.update([...pagePrefix, head])
                     root.replace(null, component, pageProp)
+
+                    if (!last) {
+                        for (const key of properties.keys()) {
+                            if (currentItem.hasOwnProperty(key))
+                                currentItem[key] = properties[key]
+                        }
+                    }
                     found = true
                     break;
                 } else {
