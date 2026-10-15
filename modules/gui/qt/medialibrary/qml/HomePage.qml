@@ -299,6 +299,8 @@ Widgets.PageExt {
                     ml: MediaLib
                     playlistType: MLPlaylistListModel.PLAYLIST_TYPE_ALL
                     limit: 12
+
+                    coverDefault: VLCStyle.noArtAlbumCover
                 }
 
                 delegate: HomeCard {

@@ -312,9 +312,12 @@ QtObject {
     readonly property url noArtAlbum: "qrc:///placeholder/noart_album.svg";
     readonly property url noArtArtist: "qrc:///placeholder/noart_artist.svg";
     readonly property url noArtArtistSmall: "qrc:///placeholder/noart_artist_small.svg";
-    readonly property url noArtAlbumCover: "qrc:///placeholder/noart_albumCover.svg";
-    readonly property url noArtArtistCover: "qrc:///placeholder/noart_artistCover.svg";
-    readonly property url noArtVideoCover: "qrc:///placeholder/noart_videoCover.svg";
+    readonly property url noArtAlbumCover: palette.isDark ? "qrc:///placeholder/noart_albumCover_dark.svg"
+                                                     : "qrc:///placeholder/noart_albumCover.svg";
+    readonly property url noArtArtistCover: palette.isDark ? "qrc:///placeholder/noart_artistCover_dark.svg"
+                                                     : "qrc:///placeholder/noart_artistCover.svg";
+    readonly property url noArtVideoCover: palette.isDark ? "qrc:///placeholder/noart_videoCover_dark.svg"
+                                                     : "qrc:///placeholder/noart_videoCover.svg";
 
     // New indicator
     readonly property url newIndicator: "qrc:///misc/new_indicator.svg";
