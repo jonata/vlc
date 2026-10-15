@@ -269,6 +269,138 @@ Widgets.PageExt {
             }
 
             Widgets.ViewHeader {
+                visible: playlistsRow.visible
+                text: qsTr("Playlists")
+                view: newVideoRow
+                seeAllButton.visible: playlistsRow.count > 0
+
+                onSeeAllButtonClicked: function (reason) {
+                    History.push(["playlists"], reason)
+                }
+            }
+
+            // the playlists of the user, as cards
+            ListView {
+                id: playlistsRow
+
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.leftMargin: newVideoRow.contentLeftMargin
+
+                height: VLCStyle.dp(160, VLCStyle.scale)
+                visible: count > 0
+
+                orientation: ListView.Horizontal
+                spacing: VLCStyle.margin_normal
+                clip: true
+                interactive: contentWidth > width
+
+                model: MLPlaylistListModel {
+                    ml: MediaLib
+                    playlistType: MLPlaylistListModel.PLAYLIST_TYPE_ALL
+                    limit: 12
+                }
+
+                delegate: HomeCard {
+                    required property var model
+
+                    title: model.name ?? ""
+                    subtitle: qsTr("%1 items").arg(model.count ?? 0)
+                    image: model.thumbnail ?? ""
+                    iconText: VLCIcons.playlist
+
+                    onClicked: History.push(["playlists", "list"], { parentId: model.id, title: model.name })
+                }
+            }
+
+            Widgets.ViewHeader {
+                visible: streamsRow.visible
+                text: qsTr("Network Streams")
+                view: newVideoRow
+                seeAllButton.visible: streamsRow.count > 0
+
+                onSeeAllButtonClicked: function (reason) {
+                    History.push(["streams"], reason)
+                }
+            }
+
+            // the saved streams, then the ones played recently
+            Flickable {
+                id: streamsRow
+
+                property var savedStreams: []
+
+                readonly property int count: savedRepeater.count + recentRepeater.count
+
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.leftMargin: newVideoRow.contentLeftMargin
+
+                height: VLCStyle.dp(160, VLCStyle.scale)
+                visible: count > 0
+
+                clip: true
+                contentWidth: streamsContent.width
+                flickableDirection: Flickable.HorizontalFlick
+                interactive: contentWidth > width
+
+                Component.onCompleted: {
+                    try {
+                        savedStreams = JSON.parse(MainCtx.settingValue("NetworkStreams/saved", "[]"))
+                    } catch (e) {
+                        savedStreams = []
+                    }
+                }
+
+                Row {
+                    id: streamsContent
+
+                    height: parent.height
+                    spacing: VLCStyle.margin_normal
+
+                    Repeater {
+                        id: savedRepeater
+
+                        model: streamsRow.savedStreams
+
+                        delegate: HomeCard {
+                            required property var modelData
+
+                            title: modelData.name || modelData.url
+                            subtitle: qsTr("Saved stream")
+                            iconText: VLCIcons.tv
+
+                            onClicked: recentStreams.addAndPlay(modelData.url)
+                        }
+                    }
+
+                    Repeater {
+                        id: recentRepeater
+
+                        model: MLUrlModel {
+                            id: recentStreams
+                            ml: MediaLib
+                            limit: 12
+                        }
+
+                        delegate: HomeCard {
+                            required property var model
+
+                            // the saved streams are already shown
+                            visible: !streamsRow.savedStreams.some(stream => stream.url === model.url)
+                            width: visible ? implicitWidth : 0
+
+                            title: model.url ?? ""
+                            subtitle: qsTr("Played recently")
+                            iconText: VLCIcons.tv
+
+                            onClicked: recentStreams.addAndPlay(model.url)
+                        }
+                    }
+                }
+            }
+
+            Widgets.ViewHeader {
                 visible: favoritesRow.visible
                 text: qsTr("Favorites")
                 view: favoritesRow
@@ -496,6 +628,75 @@ Widgets.PageExt {
                         }
                     }
                 }
+            }
+        }
+    }
+
+    // card of a playlist or of a stream on the home page
+    component HomeCard: T.ItemDelegate {
+        id: card
+
+        readonly property ColorContext colorContext: ColorContext {
+            id: homeTheme
+            colorSet: ColorContext.View
+        }
+
+        property string title
+        property string subtitle
+        property url image
+        property string iconText
+
+        implicitWidth: VLCStyle.dp(200, VLCStyle.scale)
+        width: implicitWidth
+        height: VLCStyle.dp(160, VLCStyle.scale)
+
+        padding: 0
+
+        background: null
+
+        contentItem: Column {
+            spacing: VLCStyle.margin_xsmall
+
+            Rectangle {
+                width: card.width
+                height: VLCStyle.dp(112, VLCStyle.scale)
+
+                radius: VLCStyle.dp(6, VLCStyle.scale)
+                color: card.hovered ? Qt.lighter(homeTheme.bg.secondary, 1.2) : homeTheme.bg.secondary
+                clip: true
+
+                Widgets.ImageExt {
+                    anchors.fill: parent
+                    visible: card.image.toString() !== ""
+                    source: card.image
+                    fillMode: Image.PreserveAspectCrop
+                    radius: VLCStyle.dp(6, VLCStyle.scale)
+                }
+
+                Widgets.IconLabel {
+                    anchors.centerIn: parent
+                    visible: card.image.toString() === ""
+                    text: card.iconText
+                    font.pixelSize: VLCStyle.icon_large
+                    color: homeTheme.accent
+                }
+            }
+
+            T.Label {
+                width: card.width
+                text: card.title
+                elide: Text.ElideRight
+                color: homeTheme.fg.primary
+                font.pixelSize: VLCStyle.fontSize_normal
+                font.weight: Font.DemiBold
+            }
+
+            T.Label {
+                width: card.width
+                text: card.subtitle
+                elide: Text.ElideRight
+                color: homeTheme.fg.secondary
+                font.pixelSize: VLCStyle.fontSize_small
             }
         }
     }
