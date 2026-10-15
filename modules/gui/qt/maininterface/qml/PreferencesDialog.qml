@@ -879,6 +879,9 @@ Widgets.CardDialog {
                 from: control.prefRow?.info.min ?? 0
                 to: control.prefRow?.info.max ?? 1
                 stepSize: control._integer ? 1 : (to - from) / 100
+                // the track is drawn over the background of the dialog
+                color: theme.accent
+                bgColor: theme.border
                 value: Number(control.prefRow?.value ?? 0)
 
                 onMoved: control.prefRow.set(control._integer ? Math.round(value) : value)
