@@ -43,6 +43,8 @@ T.Popup {
     anchors.centerIn: parent
 
     width: Math.min(preferredWidth, (parent?.width ?? preferredWidth) - 2 * VLCStyle.margin_large)
+    // a popup of the templates is not sized after its content
+    implicitHeight: implicitContentHeight + topPadding + bottomPadding
     height: Math.min(implicitHeight, (parent?.height ?? implicitHeight) - 2 * VLCStyle.margin_large)
 
     modal: true
