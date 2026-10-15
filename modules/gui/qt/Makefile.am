@@ -183,6 +183,7 @@ libqt_plugin_la_SOURCES = \
 	maininterface/mainctx.hpp \
 	maininterface/mainctx_submodels.cpp maininterface/mainctx_submodels.hpp \
 	maininterface/pinned_items.cpp maininterface/pinned_items.hpp \
+	maininterface/onboarding.cpp maininterface/onboarding.hpp \
 	maininterface/mainui.cpp \
 	maininterface/mainui.hpp \
 	maininterface/navigationmodel.cpp maininterface/navigationmodel.hpp \
@@ -468,6 +469,7 @@ nodist_libqt_plugin_la_SOURCES = \
 	maininterface/mainctx.moc.cpp \
 	maininterface/mainctx_submodels.moc.cpp \
 	maininterface/pinned_items.moc.cpp \
+	maininterface/onboarding.moc.cpp \
 	maininterface/mainui.moc.cpp \
 	maininterface/navigationmodel.moc.cpp \
 	maininterface/videosurface.moc.cpp \
@@ -1135,6 +1137,7 @@ libqml_module_maininterface_a_QML = \
 	maininterface/qml/LocalTopbar.qml \
 	maininterface/qml/LibraryAddressBar.qml \
 	maininterface/qml/KeyboardShortcutsDialog.qml \
+	maininterface/qml/OnboardingDialog.qml \
 	maininterface/qml/MainInterface.qml \
 	maininterface/qml/MainViewLoader.qml \
 	maininterface/qml/MainDisplay.qml \

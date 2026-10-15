@@ -36,6 +36,7 @@
 #include "player/subtitle_cues.hpp"
 #include "player/subtitle_matcher.hpp"
 #include "dialogs/hotkeys/hotkeys_model.hpp"
+#include "maininterface/onboarding.hpp"
 #include "player/delay_estimator.hpp"
 
 #include "dialogs/toolbar/controlbar_profile_model.hpp"
@@ -241,6 +242,7 @@ void MainUI::registerQMLTypes()
         qmlRegisterAnonymousType<MainCtxWin32>(uri, versionMajor);
 #endif
         qmlRegisterType<HotkeysModel>(uri, versionMajor, versionMinor, "HotkeysModel");
+        qmlRegisterType<Onboarding>(uri, versionMajor, versionMinor, "Onboarding");
         qmlRegisterTypesAndRevisions<SearchCtx>(uri, versionMajor);
         qmlRegisterTypesAndRevisions<SortCtx>(uri, versionMajor);
         qmlRegisterUncreatableType<UINotifier>(uri, versionMajor, versionMinor, "UINotifier", "");
