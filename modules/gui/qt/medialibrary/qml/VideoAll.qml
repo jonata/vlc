@@ -86,7 +86,10 @@ MainViewLoader {
 
     sortModel: [
         { text: qsTr("Alphabetic"), criteria: "title"    },
-        { text: qsTr("Duration"),   criteria: "duration" }
+        { text: qsTr("Duration"),   criteria: "duration" },
+        { text: qsTr("Date Added"), criteria: "insertion" },
+        { text: qsTr("Unwatched First"), criteria: "unwatched" },
+        { text: qsTr("Watched First"), criteria: "watched" }
     ]
 
 

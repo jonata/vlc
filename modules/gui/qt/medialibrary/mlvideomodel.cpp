@@ -103,8 +103,19 @@ vlc_ml_sorting_criteria_t MLVideoModel::nameToCriteria(QByteArray name) const
         {QByteArrayLiteral("title"), VLC_ML_SORTING_ALPHA},
         {QByteArrayLiteral("duration"), VLC_ML_SORTING_DURATION},
         {QByteArrayLiteral("playcount"), VLC_ML_SORTING_PLAYCOUNT},
+        // the videos never played first, or the most played first
+        {QByteArrayLiteral("unwatched"), VLC_ML_SORTING_PLAYCOUNT},
+        {QByteArrayLiteral("watched"), VLC_ML_SORTING_PLAYCOUNT},
         {QByteArrayLiteral("insertion"), VLC_ML_SORTING_INSERTIONDATE},
     }.value(name, VLC_ML_SORTING_DEFAULT);
+}
+
+bool MLVideoModel::isMLSortDescending() const
+{
+    // in the ascending order, the watched videos come first
+    if (getSortCriteria() == QLatin1String("watched"))
+        return !MLBaseModel::isMLSortDescending();
+    return MLBaseModel::isMLSortDescending();
 }
 
 // Protected MLBaseModel reimplementation

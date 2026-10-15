@@ -68,6 +68,7 @@ private:
     void generateThumbnail(uint64_t id) const;
 
     vlc_ml_sorting_criteria_t nameToCriteria(QByteArray name) const override;
+    bool isMLSortDescending() const override;
 
     struct Loader : public MLListCacheLoader::MLOp
     {

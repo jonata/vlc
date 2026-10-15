@@ -107,6 +107,12 @@ public:
 
     vlc_ml_sorting_criteria_t getMLSortingCriteria() const;
 
+    /// whether the media library sorts in descending order
+    virtual bool isMLSortDescending() const
+    {
+        return getSortOrder() == Qt::SortOrder::DescendingOrder;
+    }
+
 signals:
     void parentIdChanged();
     void mlChanged();
@@ -185,7 +191,7 @@ public:
     public:
         MLOp(MLItemId parentId, QString searchPattern, vlc_ml_sorting_criteria_t sort, bool sort_desc, bool fav_only);
         inline MLOp(const MLBaseModel& model)
-            : MLOp(model.parentId(), model.searchPattern(), model.getMLSortingCriteria(), model.getSortOrder() == Qt::SortOrder::DescendingOrder, model.getFavoriteOnly())
+            : MLOp(model.parentId(), model.searchPattern(), model.getMLSortingCriteria(), model.isMLSortDescending(), model.getFavoriteOnly())
         {}
         virtual ~MLOp() = default;
 
