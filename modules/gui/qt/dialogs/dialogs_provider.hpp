@@ -293,6 +293,7 @@ public:
 signals:
     void releaseMouseEvents();
     void showToolbarEditorDialog();
+    void showKeyboardShortcutsDialog();
 
     //visiblity signal
     void openDialogVisibleChanged();

@@ -335,6 +335,27 @@ Item {
             source: "qrc:///qt/qml/VLC/Menus/GlobalShortcuts.qml"
         }
 
+        // created the first time it is asked for
+        Loader {
+            id: keyboardShortcutsLoader
+
+            active: false
+            sourceComponent: KeyboardShortcutsDialog { }
+
+            onLoaded: item.open()
+
+            Connections {
+                target: DialogsProvider
+
+                function onShowKeyboardShortcutsDialog() {
+                    if (keyboardShortcutsLoader.item)
+                        keyboardShortcutsLoader.item.open()
+                    else
+                        keyboardShortcutsLoader.active = true
+                }
+            }
+        }
+
         Loader {
             active: {
                 const windowVisibility = MainCtx.intfMainWindow.visibility

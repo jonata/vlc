@@ -166,6 +166,7 @@ libqt_plugin_la_SOURCES = \
 	dialogs/toolbar/controlbar_profile_model.hpp \
 	dialogs/vlm/vlm.cpp dialogs/vlm/vlm.hpp \
 	dialogs/playlists/playlists.cpp dialogs/playlists/playlists.hpp \
+	dialogs/hotkeys/hotkeys_model.cpp dialogs/hotkeys/hotkeys_model.hpp \
 	maininterface/compositor.hpp \
 	maininterface/compositor.cpp \
 	maininterface/compositor_common.hpp \
@@ -458,6 +459,7 @@ nodist_libqt_plugin_la_SOURCES = \
 	dialogs/toolbar/controlbar_profile.moc.cpp \
 	dialogs/toolbar/controlbar_profile_model.moc.cpp \
 	dialogs/playlists/playlists.moc.cpp \
+	dialogs/hotkeys/hotkeys_model.moc.cpp \
 	maininterface/compositor.moc.cpp \
 	maininterface/compositor_common.moc.cpp \
 	maininterface/compositor_dummy.moc.cpp \
@@ -1132,6 +1134,7 @@ libqml_module_maininterface_a_QML = \
 	maininterface/qml/MenuTopbar.qml \
 	maininterface/qml/LocalTopbar.qml \
 	maininterface/qml/LibraryAddressBar.qml \
+	maininterface/qml/KeyboardShortcutsDialog.qml \
 	maininterface/qml/MainInterface.qml \
 	maininterface/qml/MainViewLoader.qml \
 	maininterface/qml/MainDisplay.qml \
