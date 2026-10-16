@@ -98,18 +98,18 @@ jobs:
       - name: Build VLC
         run: |
           cd vlc
-          meson setup build --prefix=/usr --buildtype=release -Dqt=enabled -Dmedialibrary=enabled
+          # in usr/lib, where linuxdeploy puts the libraries: VLC looks for its
+          # plugins next to libvlccore
+          meson setup build --prefix=/usr --libdir=lib --buildtype=release -Dqt=enabled -Dmedialibrary=enabled
           meson compile -C build
           DESTDIR="$GITHUB_WORKSPACE/AppDir" meson install -C build
           # the media library is a dependency of a plugin
-          cp -a /usr/lib/x86_64-linux-gnu/libmedialibrary.so* "$GITHUB_WORKSPACE/AppDir/usr/lib/x86_64-linux-gnu/"
+          cp -a /usr/lib/x86_64-linux-gnu/libmedialibrary.so* "$GITHUB_WORKSPACE/AppDir/usr/lib/"
 
       - name: Make the AppImage
         id: appimage
         run: |
-          LIB=AppDir/usr/lib/x86_64-linux-gnu
-          # the cache of the plugins, for a faster start
-          LD_LIBRARY_PATH="$LIB" AppDir/usr/libexec/vlc/vlc-cache-gen "$LIB/vlc/plugins"
+          LIB=AppDir/usr/lib
 
           wget -q https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
           wget -q https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage
@@ -154,7 +154,14 @@ jobs:
             -d vlc.desktop \
             -i vlc.png \
             $DEPS \
-            --plugin qt --output appimage
+            --plugin qt
+
+          # the cache of the plugins, for a faster start: once linuxdeploy has
+          # changed them, or VLC finds it stale
+          LD_LIBRARY_PATH="$LIB" AppDir/usr/libexec/vlc/vlc-cache-gen "$LIB/vlc/plugins"
+          test -f "$LIB/vlc/plugins/plugins.dat"
+
+          ./linuxdeploy-x86_64.AppImage --appdir AppDir --output appimage
           mkdir dist && mv "$OUTPUT" dist/
           ls -la dist
 
