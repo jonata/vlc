@@ -76,7 +76,7 @@ jobs:
           pip install --user aqtinstall
           aqt list-qt linux desktop --modules "$QT_VERSION" linux_gcc_64
           aqt install-qt linux desktop "$QT_VERSION" linux_gcc_64 \
-            -m qtshadertools qtimageformats qtwaylandcompositor --outputdir "$HOME/Qt"
+            -m qtshadertools qtwaylandcompositor --outputdir "$HOME/Qt"
           QT="$HOME/Qt/$QT_VERSION/gcc_64"
           ls "$QT/plugins/platforms"
           echo "QT=$QT" >> "$GITHUB_ENV"
