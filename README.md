@@ -13,7 +13,7 @@ code.
 
 https://github.com/user-attachments/assets/92091a77-38c8-4a07-92d6-3b03da4adadf
 
-**[Download for Windows](../../releases)** · [The code](../../tree/player-redesign) ·
+**[Download for Windows](../../releases)** · [The code](https://code.videolan.org/jonata/vlc/-/tree/player-redesign) ·
 [The original redesign video](https://www.youtube.com/watch?v=ERFeOgqk324)
 
 ## What changed
