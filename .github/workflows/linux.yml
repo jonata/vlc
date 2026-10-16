@@ -156,6 +156,16 @@ jobs:
             $DEPS \
             --plugin qt
 
+          # OpenGL on Wayland and the SVG icons, which the Qt plugin does not
+          # deploy; their libraries are deployed with the next run
+          cp -r "$QT/plugins/wayland-graphics-integration-client" "$QT/plugins/iconengines" AppDir/usr/plugins/
+          ./linuxdeploy-x86_64.AppImage --appdir AppDir \
+            --deploy-deps-only=AppDir/usr/plugins/wayland-graphics-integration-client \
+            --deploy-deps-only=AppDir/usr/plugins/iconengines
+          # the libraries of the drivers come from the system: those of
+          # Ubuntu 24.04 do not load the newer drivers
+          rm -f "$LIB"/libva.so* "$LIB"/libva-*.so* "$LIB"/libvdpau.so* "$LIB"/libvulkan.so*
+
           # the cache of the plugins, for a faster start: once linuxdeploy has
           # changed them, or VLC finds it stale
           LD_LIBRARY_PATH="$LIB" AppDir/usr/libexec/vlc/vlc-cache-gen "$LIB/vlc/plugins"
