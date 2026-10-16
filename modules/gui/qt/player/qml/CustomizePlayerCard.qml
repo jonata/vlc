@@ -204,14 +204,33 @@ FocusScope {
                                 readonly property int controlId: paletteItem.modelData.id
                                 readonly property bool fromPalette: true
 
-                                width: parent.width
-                                height: parent.height
+                                // not bound to the parent, which changes while dragged
+                                width: VLCStyle.dp(36, VLCStyle.scale)
+                                height: width
 
                                 Drag.active: dragArea.drag.active
                                 Drag.keys: ["vlc-control"]
                                 Drag.source: ghost
                                 Drag.hotSpot.x: width / 2
                                 Drag.hotSpot.y: height / 2
+
+                                // the list clips its items, the control is
+                                // moved above the card while it is dragged
+                                states: State {
+                                    when: dragArea.drag.active
+
+                                    ParentChange { target: ghost; parent: root.parent }
+                                    PropertyChanges { target: ghost; z: 100 }
+                                }
+
+                                Rectangle {
+                                    anchors.fill: parent
+                                    visible: dragArea.drag.active
+                                    radius: VLCStyle.dp(4, VLCStyle.scale)
+                                    color: theme.bg.secondary
+                                    border.color: theme.accent
+                                    border.width: VLCStyle.border
+                                }
 
                                 T.Label {
                                     anchors.centerIn: parent
