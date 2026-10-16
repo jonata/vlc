@@ -107,7 +107,7 @@ jobs:
         run: |
           LIB=AppDir/usr/lib/x86_64-linux-gnu
           # the cache of the plugins, for a faster start
-          LD_LIBRARY_PATH="$LIB" "$LIB/vlc/vlc-cache-gen" "$LIB/vlc/plugins"
+          LD_LIBRARY_PATH="$LIB" AppDir/usr/libexec/vlc/vlc-cache-gen "$LIB/vlc/plugins"
 
           wget -q https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
           wget -q https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage
@@ -124,7 +124,8 @@ jobs:
           export OUTPUT="VLC-redesign-$SHA-x86_64.AppImage"
 
           # the libraries the plugins need, in every folder of plugins
-          DEPS=""
+          # and of the helpers (the preparser of the media library)
+          DEPS="--deploy-deps-only=$LIB/vlc --deploy-deps-only=AppDir/usr/libexec/vlc"
           for d in $(find "$LIB/vlc/plugins" -type d); do DEPS="$DEPS --deploy-deps-only=$d"; done
 
           cp vlc/share/icons/256x256/vlc.png vlc.png
