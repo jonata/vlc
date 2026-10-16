@@ -120,7 +120,7 @@ jobs:
           export QML_SOURCES_PATHS="$PWD/vlc/modules/gui/qt"
           export EXTRA_PLATFORM_PLUGINS="libqwayland-egl.so;libqwayland-generic.so"
           export EXTRA_QT_MODULES="waylandclient"
-          export LD_LIBRARY_PATH="$PWD/$LIB:$QT/lib"
+          export LD_LIBRARY_PATH="$PWD/$LIB:$PWD/$LIB/vlc:$QT/lib"
           export OUTPUT="VLC-redesign-$SHA-x86_64.AppImage"
 
           # the libraries the plugins need, in every folder of plugins
