@@ -1,6 +1,6 @@
 # Builds VLC for Windows (64-bit) from the player-redesign branch, the way
 # VideoLAN's CI does it (extras/ci/gitlab-ci.yml): cross-compiled in its
-# llvm-mingw image, with its prebuilt contribs.
+# llvm-mingw image. The contribs are built on the first run, then kept.
 name: Windows build
 
 on:
@@ -37,17 +37,55 @@ jobs:
           ref: ${{ inputs.ref }}
           path: vlc
 
+      # VideoLAN publishes prebuilt contribs for its own branches only: they are
+      # built once here, and kept until their recipes change
+      - name: Restore the contribs
+        id: contribs
+        uses: actions/cache/restore@v4
+        with:
+          path: vlc/contrib-cache
+          key: contribs-win64-${{ hashFiles('vlc/contrib/src/**', 'vlc/extras/package/win32/build.sh') }}
+
       - name: Build
         run: |
-          docker run --rm --user root -v "$PWD/vlc:/build" -w /build "$IMAGE" bash -c '
-            git config --global --add safe.directory /build &&
-            extras/package/win32/build.sh -a x86_64 -r -p -l -i u'
+          if [ -f vlc/contrib-cache/vlc-contrib.tar.zst ]; then
+            # the contribs of an earlier build
+            FLAGS="-p"
+            PREBUILT="file:///build/contrib-cache/vlc-contrib.tar.zst"
+          else
+            # built, and packaged to be kept (-c)
+            FLAGS="-c"
+            PREBUILT=""
+          fi
+          # -i r: the zip, the 7z and the installer, without the MSI (WiX)
+          docker run --rm --user root -v "$PWD/vlc:/build" -w /build \
+            -e VLC_PREBUILT_CONTRIBS_URL="$PREBUILT" "$IMAGE" bash -c "
+              git config --global --add safe.directory /build &&
+              extras/package/win32/build.sh -a x86_64 -r -l -i r $FLAGS"
+
+      - name: Keep the contribs
+        if: always() && steps.contribs.outputs.cache-hit != 'true'
+        run: |
+          PACKAGE=$(sudo find vlc/contrib -maxdepth 1 -name "vlc-contrib-x86_64-w64-mingw32-*.tar.zst" | head -1)
+          if [ -n "$PACKAGE" ]; then
+            mkdir -p vlc/contrib-cache
+            sudo cp "$PACKAGE" vlc/contrib-cache/vlc-contrib.tar.zst
+            sudo chown -R "$(id -u)" vlc/contrib-cache
+            echo "SAVE_CONTRIBS=1" >> "$GITHUB_ENV"
+          fi
+
+      - name: Save the contribs
+        if: always() && env.SAVE_CONTRIBS == '1'
+        uses: actions/cache/save@v4
+        with:
+          path: vlc/contrib-cache
+          key: ${{ steps.contribs.outputs.cache-primary-key }}
 
       - name: Collect the packages
         id: collect
         run: |
           mkdir dist
-          sudo find vlc -maxdepth 2 -type f \( -name "vlc-*.zip" -o -name "vlc-*.7z" \) -exec cp {} dist/ \;
+          sudo find vlc -maxdepth 2 -type f \( -name "vlc-*.zip" -o -name "vlc-*.7z" -o -name "vlc-*.exe" \) -exec cp {} dist/ \;
           sudo chown -R "$(id -u)" dist
           ls -la dist
           test -n "$(ls dist)"
