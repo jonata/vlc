@@ -131,9 +131,27 @@ jobs:
           for d in $(find "$LIB/vlc/plugins" -type d); do DEPS="$DEPS --deploy-deps-only=$d"; done
 
           cp vlc/share/icons/256x256/vlc.png vlc.png
+          # meson does not install the desktop entry
+          cat > vlc.desktop << 'DESKTOP'
+          [Desktop Entry]
+          Version=1.0
+          Name=VLC media player (redesign)
+          GenericName=Media player
+          Comment=Read, capture, broadcast your multimedia streams
+          Exec=vlc --started-from-file %U
+          TryExec=vlc
+          Icon=vlc
+          Terminal=false
+          Type=Application
+          Categories=AudioVideo;Player;Recorder;
+          MimeType=video/mp4;video/x-matroska;video/webm;video/quicktime;video/x-msvideo;video/mpeg;audio/mpeg;audio/flac;audio/ogg;audio/x-wav;application/x-matroska;
+          Keywords=Player;Capture;DVD;Audio;Video;Server;Broadcast;
+          StartupWMClass=vlc
+          DESKTOP
+          sed -i 's/^ *//' vlc.desktop
           ./linuxdeploy-x86_64.AppImage --appdir AppDir \
             -e AppDir/usr/bin/vlc \
-            -d AppDir/usr/share/applications/vlc.desktop \
+            -d vlc.desktop \
             -i vlc.png \
             $DEPS \
             --plugin qt --output appimage
