@@ -23,6 +23,8 @@ env:
   MEDIALIBRARY_VERSION: 0.13.2
   # VLC needs meson 1.10 or newer
   MESON_VERSION: 1.10.1
+  # VLC needs wayland-scanner 1.23 or newer
+  WAYLAND_VERSION: 1.23.1
 
 jobs:
   appimage:
@@ -83,6 +85,19 @@ jobs:
           echo "$QT/bin" >> "$GITHUB_PATH"
           echo "PKG_CONFIG_PATH=$QT/lib/pkgconfig" >> "$GITHUB_ENV"
 
+      # VLC needs a newer wayland-scanner than the one of Ubuntu 24.04, the
+      # libraries of the system are kept
+      - name: Build wayland-scanner
+        run: |
+          wget -q "https://gitlab.freedesktop.org/wayland/wayland/-/releases/$WAYLAND_VERSION/downloads/wayland-$WAYLAND_VERSION.tar.xz"
+          tar xf "wayland-$WAYLAND_VERSION.tar.xz"
+          cd "wayland-$WAYLAND_VERSION"
+          meson setup build --prefix="$HOME/wayland-scanner" -Dlibraries=false -Ddocumentation=false -Dtests=false -Ddtd_validation=false
+          meson compile -C build
+          meson install -C build
+          echo "PKG_CONFIG_PATH=$HOME/wayland-scanner/share/pkgconfig:$HOME/wayland-scanner/lib/x86_64-linux-gnu/pkgconfig:$PKG_CONFIG_PATH" >> "$GITHUB_ENV"
+          echo "$HOME/wayland-scanner/bin" >> "$GITHUB_PATH"
+
       - name: Build the media library
         run: |
           wget -q "https://code.videolan.org/videolan/medialibrary/-/archive/$MEDIALIBRARY_VERSION/medialibrary-$MEDIALIBRARY_VERSION.tar.bz2"
@@ -100,7 +115,7 @@ jobs:
           cd vlc
           # in usr/lib, where linuxdeploy puts the libraries: VLC looks for its
           # plugins next to libvlccore
-          meson setup build --prefix=/usr --libdir=lib --buildtype=release -Dqt=enabled -Dmedialibrary=enabled
+          meson setup build --prefix=/usr --libdir=lib --buildtype=release -Dqt=enabled -Dmedialibrary=enabled -Dwayland=enabled
           meson compile -C build
           DESTDIR="$GITHUB_WORKSPACE/AppDir" meson install -C build
           # the media library is a dependency of a plugin
@@ -149,7 +164,11 @@ jobs:
           StartupWMClass=vlc
           DESKTOP
           sed -i 's/^ *//' vlc.desktop
-          ./linuxdeploy-x86_64.AppImage --appdir AppDir \
+          # the libraries of the drivers come from the system: those of
+          # Ubuntu 24.04 do not load the newer drivers
+          EXCLUDE="--exclude-library=libva.so* --exclude-library=libva-*.so* --exclude-library=libvdpau.so* --exclude-library=libvulkan.so*"
+
+          ./linuxdeploy-x86_64.AppImage --appdir AppDir $EXCLUDE \
             -e AppDir/usr/bin/vlc \
             -d vlc.desktop \
             -i vlc.png \
@@ -159,11 +178,9 @@ jobs:
           # OpenGL on Wayland and the SVG icons, which the Qt plugin does not
           # deploy; their libraries are deployed with the next run
           cp -r "$QT/plugins/wayland-graphics-integration-client" "$QT/plugins/iconengines" AppDir/usr/plugins/
-          ./linuxdeploy-x86_64.AppImage --appdir AppDir \
+          ./linuxdeploy-x86_64.AppImage --appdir AppDir $EXCLUDE \
             --deploy-deps-only=AppDir/usr/plugins/wayland-graphics-integration-client \
             --deploy-deps-only=AppDir/usr/plugins/iconengines
-          # the libraries of the drivers come from the system: those of
-          # Ubuntu 24.04 do not load the newer drivers
           rm -f "$LIB"/libva.so* "$LIB"/libva-*.so* "$LIB"/libvdpau.so* "$LIB"/libvulkan.so*
 
           # the cache of the plugins, for a faster start: once linuxdeploy has
@@ -171,7 +188,7 @@ jobs:
           LD_LIBRARY_PATH="$LIB" AppDir/usr/libexec/vlc/vlc-cache-gen "$LIB/vlc/plugins"
           test -f "$LIB/vlc/plugins/plugins.dat"
 
-          ./linuxdeploy-x86_64.AppImage --appdir AppDir --output appimage
+          ./linuxdeploy-x86_64.AppImage --appdir AppDir $EXCLUDE --output appimage
           mkdir dist && mv "$OUTPUT" dist/
           ls -la dist
 
