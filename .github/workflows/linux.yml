@@ -1,0 +1,149 @@
+# Builds VLC for Linux (x86_64) from the player-redesign branch, as an AppImage.
+# Built on Ubuntu 24.04 with the Qt binaries of the Qt Company, so that it runs
+# on systems with glibc 2.39 or newer.
+name: Linux build
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Branch, tag or commit to build
+        default: player-redesign
+      release:
+        description: Publish the build in a pre-release
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+env:
+  QT_VERSION: 6.10.2
+  # the version of the contribs of VLC (contrib/src/medialibrary/rules.mak)
+  MEDIALIBRARY_VERSION: 0.13.2
+
+jobs:
+  appimage:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+          path: vlc
+
+      - name: Install the dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential meson ninja-build pkg-config cmake nasm flex bison gettext \
+            python3-pip lua5.4 liblua5.4-dev wget file desktop-file-utils patchelf \
+            libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libswresample-dev \
+            libass-dev libfreetype-dev libfribidi-dev libharfbuzz-dev libfontconfig-dev \
+            libxcb1-dev libxcb-shm0-dev libxcb-composite0-dev libxcb-xkb-dev libxcb-randr0-dev \
+            libxcb-keysyms1-dev libxcb-xinput-dev libxcb-damage0-dev \
+            libx11-dev libx11-xcb-dev libxkbcommon-dev libxkbcommon-x11-dev \
+            libwayland-dev wayland-protocols libegl-dev libgl-dev libgles-dev libvulkan-dev \
+            libdrm-dev libva-dev libvdpau-dev \
+            libpulse-dev libpipewire-0.3-dev libasound2-dev \
+            libtag1-dev libebml-dev libmatroska-dev libdvbpsi-dev libmpeg2-4-dev liba52-0.7.4-dev \
+            libmad0-dev libmpg123-dev libflac-dev libvorbis-dev libogg-dev libopus-dev libtheora-dev \
+            libspeex-dev libspeexdsp-dev libdav1d-dev libsamplerate0-dev libsoxr-dev \
+            libxml2-dev libarchive-dev libgnutls28-dev libsecret-1-dev libgcrypt20-dev \
+            libbluray-dev libdvdnav-dev libdvdread-dev libcddb2-dev libcdio-dev \
+            libnfs-dev libssh2-1-dev libupnp-dev libavahi-client-dev \
+            libudev-dev libdbus-1-dev libnotify-dev libsystemd-dev \
+            libsqlite3-dev libjpeg-dev libpng-dev zlib1g-dev libzstd-dev libxxhash-dev \
+            libprotobuf-dev protobuf-compiler
+          # optional, not available in every version of Ubuntu
+          for p in libplacebo-dev libspatialaudio-dev libmicrodns-dev libsmb2-dev libxcb-cursor-dev; do
+            sudo apt-get install -y --no-install-recommends "$p" || echo "skipped $p"
+          done
+          # meson looks for luac
+          sudo ln -sf "$(command -v luac5.4)" /usr/local/bin/luac
+
+      - name: Install Qt
+        run: |
+          pip install --user aqtinstall
+          aqt list-qt linux desktop --modules "$QT_VERSION" linux_gcc_64
+          aqt install-qt linux desktop "$QT_VERSION" linux_gcc_64 \
+            -m qtshadertools qtimageformats qtwaylandcompositor --outputdir "$HOME/Qt"
+          QT="$HOME/Qt/$QT_VERSION/gcc_64"
+          ls "$QT/plugins/platforms"
+          echo "QT=$QT" >> "$GITHUB_ENV"
+          echo "$QT/bin" >> "$GITHUB_PATH"
+          echo "PKG_CONFIG_PATH=$QT/lib/pkgconfig" >> "$GITHUB_ENV"
+
+      - name: Build the media library
+        run: |
+          wget -q "https://code.videolan.org/videolan/medialibrary/-/archive/$MEDIALIBRARY_VERSION/medialibrary-$MEDIALIBRARY_VERSION.tar.bz2"
+          tar xf "medialibrary-$MEDIALIBRARY_VERSION.tar.bz2"
+          cd "medialibrary-$MEDIALIBRARY_VERSION"
+          meson setup build --prefix=/usr --buildtype=release -Dlibvlc=disabled -Dtests=disabled
+          meson compile -C build
+          sudo meson install -C build
+
+      - name: Build VLC
+        run: |
+          cd vlc
+          meson setup build --prefix=/usr --buildtype=release -Dqt=enabled -Dmedialibrary=enabled
+          meson compile -C build
+          DESTDIR="$GITHUB_WORKSPACE/AppDir" meson install -C build
+          # the media library is a dependency of a plugin
+          cp -a /usr/lib/x86_64-linux-gnu/libmedialibrary.so* "$GITHUB_WORKSPACE/AppDir/usr/lib/x86_64-linux-gnu/"
+
+      - name: Make the AppImage
+        id: appimage
+        run: |
+          LIB=AppDir/usr/lib/x86_64-linux-gnu
+          # the cache of the plugins, for a faster start
+          LD_LIBRARY_PATH="$LIB" "$LIB/vlc/vlc-cache-gen" "$LIB/vlc/plugins"
+
+          wget -q https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
+          wget -q https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage
+          chmod +x linuxdeploy*.AppImage
+
+          SHA=$(git -C vlc rev-parse --short HEAD)
+          echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+          export APPIMAGE_EXTRACT_AND_RUN=1
+          export QMAKE="$QT/bin/qmake"
+          export QML_SOURCES_PATHS="$PWD/vlc/modules/gui/qt"
+          export EXTRA_PLATFORM_PLUGINS="libqwayland-egl.so;libqwayland-generic.so"
+          export EXTRA_QT_MODULES="waylandclient"
+          export LD_LIBRARY_PATH="$PWD/$LIB:$QT/lib"
+          export OUTPUT="VLC-redesign-$SHA-x86_64.AppImage"
+
+          # the libraries the plugins need, in every folder of plugins
+          DEPS=""
+          for d in $(find "$LIB/vlc/plugins" -type d); do DEPS="$DEPS --deploy-deps-only=$d"; done
+
+          cp vlc/share/icons/256x256/vlc.png vlc.png
+          ./linuxdeploy-x86_64.AppImage --appdir AppDir \
+            -e AppDir/usr/bin/vlc \
+            -d AppDir/usr/share/applications/vlc.desktop \
+            -i vlc.png \
+            $DEPS \
+            --plugin qt --output appimage
+          mkdir dist && mv "$OUTPUT" dist/
+          ls -la dist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vlc-redesign-linux-${{ steps.appimage.outputs.sha }}
+          path: dist/*
+
+      - name: Publish in a pre-release
+        if: inputs.release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="redesign-$(date -u +%Y%m%d)-${{ steps.appimage.outputs.sha }}"
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            gh release upload "$TAG" dist/* --repo "$GITHUB_REPOSITORY" --clobber
+          else
+            gh release create "$TAG" dist/* --repo "$GITHUB_REPOSITORY" --prerelease \
+              --target "$(git -C vlc rev-parse HEAD)" \
+              --title "VLC redesign, test build ($TAG)" \
+              --notes "Unofficial test builds of the VLC 4 redesign, from player-redesign at ${{ steps.appimage.outputs.sha }}. Not signed, not supported by VideoLAN."
+          fi

@@ -13,7 +13,7 @@ code.
 
 https://github.com/user-attachments/assets/92091a77-38c8-4a07-92d6-3b03da4adadf
 
-**[Download for Windows](../../releases)** · [The code](https://code.videolan.org/jonata/vlc/-/tree/player-redesign) ·
+**[Download for Windows and Linux](../../releases)** · [The code](https://code.videolan.org/jonata/vlc/-/tree/player-redesign) ·
 [The original redesign video](https://www.youtube.com/watch?v=ERFeOgqk324)
 
 ## What changed
@@ -104,12 +104,19 @@ Drag controls from the palette into the control bar, or out of it.
 
 ## Download
 
-Builds for Windows (64-bit) are on the [releases page](../../releases). They are
-not signed: Windows may warn about them before running them.
+Test builds are on the [releases page](../../releases):
 
-The builds are made by [GitHub Actions](.github/workflows/windows.yml) from the
-[`player-redesign`](../../tree/player-redesign) branch, with the tools and the
-prebuilt libraries of VideoLAN.
+- **Windows** (64-bit): a zip, unpack it and run `vlc.exe`. It is not signed:
+  Windows may warn about it before running it.
+- **Linux** (x86_64): an AppImage, for systems with glibc 2.39 or newer (Ubuntu
+  24.04, Debian 13, Fedora 40 and later). Make it executable and run it:
+  `chmod +x VLC-redesign-*.AppImage && ./VLC-redesign-*.AppImage`
+
+They are made by GitHub Actions from the
+[`player-redesign`](../../tree/player-redesign) branch: the
+[Windows build](.github/workflows/windows.yml) with the tools and the prebuilt
+libraries of VideoLAN, the [Linux build](.github/workflows/linux.yml) on Ubuntu
+24.04 with Qt 6.10.
 
 ## Build it yourself
 
@@ -132,7 +139,7 @@ to be incomplete:
 
 - some options of the redesigned preferences have no setting in VLC yet
 - the media information, effects and messages windows keep their old look
-- only tested on Linux (X11 and Wayland) so far
+- developed and tested on Linux (X11 and Wayland); the Windows build is untested
 
 Issues and feedback are welcome in the [issues](../../issues).
 

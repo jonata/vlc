@@ -10,7 +10,7 @@ on:
         description: Branch, tag or commit to build
         default: player-redesign
       release:
-        description: Publish the build as a pre-release
+        description: Publish the build in a pre-release
         type: boolean
         default: false
 
@@ -58,13 +58,18 @@ jobs:
           name: vlc-redesign-win64-${{ steps.collect.outputs.sha }}
           path: dist/*
 
-      - name: Publish a pre-release
+      - name: Publish in a pre-release
         if: inputs.release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           TAG="redesign-$(date -u +%Y%m%d)-${{ steps.collect.outputs.sha }}"
-          gh release create "$TAG" dist/* --repo "$GITHUB_REPOSITORY" --prerelease \
-            --target "$(git -C vlc rev-parse HEAD)" \
-            --title "VLC redesign, Windows test build ($TAG)" \
-            --notes "Unofficial test build of the VLC 4 redesign, from player-redesign at ${{ steps.collect.outputs.sha }}. Not signed, not supported by VideoLAN."
+          # the Linux build may have made the release already
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            gh release upload "$TAG" dist/* --repo "$GITHUB_REPOSITORY" --clobber
+          else
+            gh release create "$TAG" dist/* --repo "$GITHUB_REPOSITORY" --prerelease \
+              --target "$(git -C vlc rev-parse HEAD)" \
+              --title "VLC redesign, test build ($TAG)" \
+              --notes "Unofficial test builds of the VLC 4 redesign, from player-redesign at ${{ steps.collect.outputs.sha }}. Not signed, not supported by VideoLAN."
+          fi
