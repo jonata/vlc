@@ -383,18 +383,17 @@ static EGLDisplay OpenDisplay(vlc_gl_t *gl)
     EGLDisplay display;
     int snum = XScreenNumberOfScreen(wa.screen);
 
-# if defined(EGL_VERSION_1_5)
-#  ifdef EGL_KHR_paltform_x11
+# if defined(EGL_VERSION_1_5) && defined(EGL_KHR_platform_x11)
     if (CheckClientExt("EGL_KHR_platform_x11")) {
         const EGLAttrib attrs[] = {
             EGL_PLATFORM_X11_SCREEN_KHR, snum,
             EGL_NONE
         };
 
-        display = getPlatformDisplayEXT(EGL_PLATFORM_X11_KHR, x11, attrs);
+        display = eglGetPlatformDisplay(EGL_PLATFORM_X11_KHR, x11, attrs);
     } else
-#  endif
-# elif defined(EGL_EXT_platform_x11)
+# endif
+# if defined(EGL_EXT_platform_x11)
     if (CheckClientExt("EGL_EXT_platform_x11")) {
         const EGLint attrs[] = {
             EGL_PLATFORM_X11_SCREEN_EXT, snum,
