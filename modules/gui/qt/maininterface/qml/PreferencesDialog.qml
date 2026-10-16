@@ -21,7 +21,6 @@ import QtQuick.Templates as T
 import QtQuick.Layouts
 
 import VLC.MainInterface
-import VLC.MediaLibrary
 import VLC.Style
 import VLC.Widgets as Widgets
 
@@ -88,12 +87,6 @@ Widgets.CardDialog {
     Onboarding {
         id: onboarding
         ctx: MainCtx
-    }
-
-    Component {
-        id: recentsComponent
-
-        MLRecentMediaModel { }
     }
 
     // a row is an option of the configuration {option, label}, or one of
@@ -471,7 +464,9 @@ Widgets.CardDialog {
             prefs.resetAll()
             break
         case "clearHistory": {
-            const recents = recentsComponent.createObject(root, { ml: MainCtx.mediaLibrary })
+            // the types of the media library exist only when it is available
+            const recents = Qt.createQmlObject("import VLC.MediaLibrary; MLRecentMediaModel { }", root)
+            recents.ml = MainCtx.mediaLibrary
             recents.clearHistory()
             recents.destroy()
             break
