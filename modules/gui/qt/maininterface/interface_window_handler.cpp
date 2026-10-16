@@ -24,6 +24,7 @@
 #include "dialogs/systray/systray.hpp"
 #include "widgets/native/qvlcframe.hpp"
 #include "dialogs/dialogs/dialogmodel.hpp"
+#include <QGuiApplication>
 #include <QScreen>
 #include <QQmlProperty>
 #include <cmath>
@@ -69,7 +70,15 @@ InterfaceWindowHandler::InterfaceWindowHandler(qt_intf_t *_p_intf, MainCtx* main
     m_window->setIcon( QApplication::windowIcon() );
     m_window->setOpacity( var_InheritFloat( p_intf, "qt-opacity" ) );
 
-    QVLCTools::restoreWindowPosition( getSettings(), m_window, QSize(600, 420) );
+    // the first time, most of the screen: the library and the onboarding
+    // need room
+    QSize defaultSize(1000, 680);
+    if (const QScreen *screen = QGuiApplication::primaryScreen())
+    {
+        const QSize available = screen->availableSize();
+        defaultSize = defaultSize.expandedTo(available * 0.75).boundedTo(available);
+    }
+    QVLCTools::restoreWindowPosition( getSettings(), m_window, defaultSize );
 
     // this needs to be called asynchronously
     // otherwise QQuickWidget won't initialize properly
