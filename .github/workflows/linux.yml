@@ -88,7 +88,10 @@ jobs:
           cd "medialibrary-$MEDIALIBRARY_VERSION"
           meson setup build --prefix=/usr --buildtype=release -Dlibvlc=disabled -Dtests=disabled
           meson compile -C build
-          sudo "$(command -v meson)" install -C build
+          # meson is installed for the user, not for root
+          DESTDIR="$HOME/medialibrary-root" meson install -C build
+          sudo cp -a "$HOME/medialibrary-root/usr/." /usr/
+          sudo ldconfig
 
       - name: Build VLC
         run: |
