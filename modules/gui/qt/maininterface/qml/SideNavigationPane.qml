@@ -114,6 +114,24 @@ T.Pane {
                 clip: !fadingEdge.implicitClipping && (height < contentHeight)
                 focus: true
 
+                // when all the rows fit, the list must not stay scrolled, as it
+                // may after the rows of a section are removed (once their
+                // animations are done)
+                Timer {
+                    id: unscrollTimer
+
+                    interval: VLCStyle.duration_long + 100
+
+                    onTriggered: {
+                        if (listView.height >= listView.contentHeight && listView.contentY !== listView.originY)
+                            listView.contentY = listView.originY
+                    }
+                }
+
+                onHeightChanged: unscrollTimer.restart()
+                onContentHeightChanged: unscrollTimer.restart()
+                onOriginYChanged: unscrollTimer.restart()
+
                 model: navigationModel
 
                 Binding {
