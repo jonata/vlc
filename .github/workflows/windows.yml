@@ -87,9 +87,14 @@ jobs:
           mkdir dist
           sudo find vlc -maxdepth 2 -type f \( -name "vlc-*.zip" -o -name "vlc-*.7z" -o -name "vlc-*.exe" \) -exec cp {} dist/ \;
           sudo chown -R "$(id -u)" dist
+          SHA=$(git -C vlc rev-parse --short HEAD)
+          # named as unofficial builds, not as those of VideoLAN
+          for f in dist/vlc-*-win64.*; do
+            mv "$f" "dist/VLC-redesign-$SHA-win64${f##*-win64}"
+          done
           ls -la dist
           test -n "$(ls dist)"
-          echo "sha=$(git -C vlc rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+          echo "sha=$SHA" >> "$GITHUB_OUTPUT"
 
       - uses: actions/upload-artifact@v4
         with:
