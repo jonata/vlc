@@ -11,8 +11,7 @@ code.
 > is still in development: expect bugs, and keep using the
 > [official VLC](https://www.videolan.org/vlc/) for anything that matters.
 
-<!-- The video: drag vlc-redesign-highlights.mp4 into this file when editing it
-     on github.com, and replace this comment with the link GitHub inserts. -->
+https://github.com/user-attachments/assets/92091a77-38c8-4a07-92d6-3b03da4adadf
 
 **[Download for Windows](../../releases)** · [The code](../../tree/player-redesign) ·
 [The original redesign video](https://www.youtube.com/watch?v=PLACEHOLDER)
