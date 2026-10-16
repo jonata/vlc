@@ -108,6 +108,9 @@ T.Popup {
 
                     T.Label {
                         Layout.alignment: Qt.AlignHCenter
+                        Layout.fillWidth: true
+                        horizontalAlignment: Text.AlignHCenter
+                        wrapMode: Text.Wrap
                         text: qsTr("Welcome to VLC!")
                         color: theme.fg.primary
                         font.pixelSize: VLCStyle.dp(32, VLCStyle.scale)
@@ -210,15 +213,21 @@ T.Popup {
 
                     T.Label {
                         Layout.alignment: Qt.AlignHCenter
+                        Layout.fillWidth: true
+                        horizontalAlignment: Text.AlignHCenter
+                        wrapMode: Text.Wrap
                         text: qsTr("Select your preferred theme and color.")
                         color: theme.fg.primary
                         font.pixelSize: VLCStyle.dp(28, VLCStyle.scale)
                         font.weight: Font.DemiBold
                     }
 
+                    // the cards shrink in a small window
                     RowLayout {
                         Layout.alignment: Qt.AlignHCenter
-                        spacing: VLCStyle.margin_xlarge
+                        Layout.fillWidth: true
+                        Layout.maximumWidth: 3 * VLCStyle.dp(180, VLCStyle.scale) + 2 * spacing
+                        spacing: Math.min(VLCStyle.margin_xlarge, root.width / 40)
 
                         ThemeCard { text: qsTr("Light"); scheme: 1; lightPart: 1; onChosen: onboarding.setColorScheme(scheme) }
                         ThemeCard { text: qsTr("Dark"); scheme: 2; lightPart: 0; onChosen: onboarding.setColorScheme(scheme) }
@@ -295,16 +304,22 @@ T.Popup {
 
                     T.Label {
                         Layout.alignment: Qt.AlignHCenter
+                        Layout.fillWidth: true
+                        horizontalAlignment: Text.AlignHCenter
+                        wrapMode: Text.Wrap
                         text: qsTr("Learn the basic keyboard shortcuts.")
                         color: theme.fg.primary
                         font.pixelSize: VLCStyle.dp(28, VLCStyle.scale)
                         font.weight: Font.DemiBold
                     }
 
-                    RowLayout {
+                    // one column in a small window
+                    GridLayout {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
-                        spacing: VLCStyle.margin_xlarge
+                        columns: (root.width < VLCStyle.dp(760, VLCStyle.scale)) ? 1 : 2
+                        columnSpacing: VLCStyle.margin_xlarge
+                        rowSpacing: VLCStyle.margin_large
 
                         ShortcutColumn {
                             shortcuts: [
@@ -330,6 +345,8 @@ T.Popup {
                     }
 
                     T.Label {
+                        Layout.fillWidth: true
+                        wrapMode: Text.Wrap
                         text: qsTr("Find the full list in the menu, under Tools, Keyboard Shortcuts.")
                         color: theme.fg.secondary
                         font.pixelSize: VLCStyle.fontSize_normal
@@ -387,7 +404,9 @@ T.Popup {
     // a step, which scrolls when the window is too small for it
     component StepPage: Flickable {
         clip: true
-        contentWidth: width
+        // room for the scroll bar, beside the content
+        rightMargin: VLCStyle.margin_normal
+        contentWidth: width - rightMargin
         contentHeight: contentItem.childrenRect.height
         boundsBehavior: Flickable.StopAtBounds
 
@@ -414,6 +433,10 @@ T.Popup {
 
         implicitWidth: VLCStyle.dp(180, VLCStyle.scale)
         implicitHeight: VLCStyle.dp(150, VLCStyle.scale)
+
+        Layout.fillWidth: true
+        Layout.preferredWidth: implicitWidth
+        Layout.minimumWidth: VLCStyle.dp(80, VLCStyle.scale)
 
         onClicked: card.chosen()
 
