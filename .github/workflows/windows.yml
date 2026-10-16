@@ -1,0 +1,70 @@
+# Builds VLC for Windows (64-bit) from the player-redesign branch, the way
+# VideoLAN's CI does it (extras/ci/gitlab-ci.yml): cross-compiled in its
+# llvm-mingw image, with its prebuilt contribs.
+name: Windows build
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Branch, tag or commit to build
+        default: player-redesign
+      release:
+        description: Publish the build as a pre-release
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+env:
+  # the image of the win64-llvm jobs of extras/ci/gitlab-ci.yml
+  IMAGE: registry.videolan.org/vlc-debian-llvm-msvcrt:20260611225331
+
+jobs:
+  win64:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+
+    steps:
+      - name: Make room for the image and the build
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+          df -h /
+
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+          path: vlc
+
+      - name: Build
+        run: |
+          docker run --rm --user root -v "$PWD/vlc:/build" -w /build "$IMAGE" bash -c '
+            git config --global --add safe.directory /build &&
+            extras/package/win32/build.sh -a x86_64 -r -p -l -i u'
+
+      - name: Collect the packages
+        id: collect
+        run: |
+          mkdir dist
+          sudo find vlc -maxdepth 2 -type f \( -name "vlc-*.zip" -o -name "vlc-*.7z" \) -exec cp {} dist/ \;
+          sudo chown -R "$(id -u)" dist
+          ls -la dist
+          test -n "$(ls dist)"
+          echo "sha=$(git -C vlc rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vlc-redesign-win64-${{ steps.collect.outputs.sha }}
+          path: dist/*
+
+      - name: Publish a pre-release
+        if: inputs.release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="redesign-$(date -u +%Y%m%d)-${{ steps.collect.outputs.sha }}"
+          gh release create "$TAG" dist/* --repo "$GITHUB_REPOSITORY" --prerelease \
+            --target "$(git -C vlc rev-parse HEAD)" \
+            --title "VLC redesign, Windows test build ($TAG)" \
+            --notes "Unofficial test build of the VLC 4 redesign, from player-redesign at ${{ steps.collect.outputs.sha }}. Not signed, not supported by VideoLAN."

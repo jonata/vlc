@@ -1,0 +1,21 @@
+# Keeps the player-redesign branch of this repository the same as the one on
+# code.videolan.org, where the work happens.
+name: Sync from code.videolan.org
+
+on:
+  schedule:
+    - cron: '17 5 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Mirror player-redesign
+        run: |
+          git init -q mirror && cd mirror
+          git fetch -q https://code.videolan.org/jonata/vlc.git player-redesign
+          git push -q --force "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" FETCH_HEAD:refs/heads/player-redesign
