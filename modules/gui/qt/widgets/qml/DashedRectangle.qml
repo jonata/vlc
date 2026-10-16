@@ -18,33 +18,49 @@
 
 import QtQuick
 
-// outline with dashes, as around what can be moved
-Canvas {
+// outline with dashes, as around what can be moved; drawn with rectangles,
+// as the builds of Qt of VLC have no Canvas and no Shapes
+Item {
     id: root
 
     property color color: "white"
+    // the corners are left open, the dashes stop before them
     property real radius: 4
     property real lineWidth: 1
     property var dashPattern: [3, 3]
 
-    onColorChanged: requestPaint()
-    onWidthChanged: requestPaint()
-    onHeightChanged: requestPaint()
+    readonly property real _dash: dashPattern[0] * lineWidth
+    readonly property real _gap: dashPattern[1] * lineWidth
 
-    onPaint: {
-        const ctx = getContext("2d")
-        ctx.reset()
-        ctx.strokeStyle = root.color
-        ctx.lineWidth = root.lineWidth
-        ctx.setLineDash(root.dashPattern)
+    component Edge: Item {
+        id: edge
 
-        const inset = root.lineWidth / 2
-        const w = width - 2 * inset
-        const h = height - 2 * inset
-        const r = Math.min(root.radius, w / 2, h / 2)
+        // along the length, the dashes are spread evenly
+        property real length
+        property bool vertical: false
 
-        ctx.beginPath()
-        ctx.roundedRect(inset, inset, w, h, r, r)
-        ctx.stroke()
+        readonly property int _count: Math.max(1, Math.floor((length + root._gap) / (root._dash + root._gap)))
+        readonly property real _step: (_count > 1) ? (length - root._dash) / (_count - 1) : 0
+
+        Repeater {
+            model: edge._count
+
+            Rectangle {
+                required property int index
+
+                x: edge.vertical ? 0 : index * edge._step
+                y: edge.vertical ? index * edge._step : 0
+                width: edge.vertical ? root.lineWidth : root._dash
+                height: edge.vertical ? root._dash : root.lineWidth
+                color: root.color
+            }
+        }
     }
+
+    readonly property real _inset: Math.min(radius, width / 2, height / 2)
+
+    Edge { x: root._inset; y: 0; length: root.width - 2 * root._inset }
+    Edge { x: root._inset; y: root.height - root.lineWidth; length: root.width - 2 * root._inset }
+    Edge { x: 0; y: root._inset; length: root.height - 2 * root._inset; vertical: true }
+    Edge { x: root.width - root.lineWidth; y: root._inset; length: root.height - 2 * root._inset; vertical: true }
 }
